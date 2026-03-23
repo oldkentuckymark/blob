@@ -186,20 +186,20 @@ auto main() -> int
 
         ctx.setVertexPointer(3,0,(void*)ballpos);
         ctx.setColorPointer(0, (uint16_t*)ballcol);
-        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-1.8_fx};
+        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
         ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
 
 
 
         ctx.setVertexPointer(3,0,(void*)blobbluepos);
         ctx.setColorPointer(0, (uint16_t*)blobbluecol);
-        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-1.8_fx};
+        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
         ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
 
 
         ctx.setVertexPointer(3,0,(void*)blobredpos);
         ctx.setColorPointer(0, (uint16_t*)blobredcol);
-        ctx.getVertexFunction().camPos = {2.0_fx,0.0_fx,-1.8_fx};
+        ctx.getVertexFunction().camPos = {2.0_fx,0.0_fx,-2.0_fx};
         ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
 
         ctx.present();

@@ -387,18 +387,22 @@ public:
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
                 project_to_ndc_(v0);project_to_ndc_(v1);project_to_ndc_(v2);
-                to_screen_space_(v0);to_screen_space_(v1);to_screen_space_(v2);
 
-                util::array<vec3, 8> arr;
-                uint32_t n = clip_triangle_screen_space_(v0,v1,v2,arr);
-
+                util::array<vec3,15> arr;
+                auto n = clip_and_triangulate_ndc(v0,v1,v2,arr);
                 for(uint32_t k = 0; k < n; k = k + 3)
                 {
                     if(is_front_facing(arr[k], arr[k+1], arr[k+2]))
-                    triangle(static_cast<int16_t>(arr[k].x), static_cast<int16_t>(arr[k].y),
-                             static_cast<int16_t>(arr[k+1].x), static_cast<int16_t>(arr[k+1].y),
-                             static_cast<int16_t>(arr[k+2].x), static_cast<int16_t>(arr[k+2].y), ccs);
+                    {
+
+                        to_screen_space_(arr[k]);to_screen_space_(arr[k+1]);to_screen_space_(arr[k+2]);
+                        triangle(static_cast<int16_t>(arr[k].x), static_cast<int16_t>(arr[k].y),
+                                 static_cast<int16_t>(arr[k+1].x), static_cast<int16_t>(arr[k+1].y),
+                                 static_cast<int16_t>(arr[k+2].x), static_cast<int16_t>(arr[k+2].y), ccs);
+                    }
                 }
+
+
 
                 i = i + 2;
                 ++col;
@@ -529,245 +533,102 @@ private:
         p.y = p.y / p.z;
     }
 
-    [[nodiscard]] auto clip_triangle_screen_space_(vec3 const& v0, vec3 const& v1, vec3 const& v2,
-                                               util::array<vec3, 8>& outVerts) -> uint32_t
+    [[nodiscard]] auto clip_and_triangulate_ndc(
+        const vec3& v0, const vec3& v1, const vec3& v2,
+        util::array<vec3, 15>& out_vertices) noexcept -> int32_t
     {
-        const fixed32 left   = 0.0_fx;
-        const fixed32 right  = viewport_width_fx_  - 1.0_fx;
-        const fixed32 bottom = 0.0_fx;
-        const fixed32 top    = viewport_height_fx_ - 1.0_fx;
+        // ---- Trivial reject ------------------------------------------------
+        if (v0.x < -1.0_fx && v1.x < -1.0_fx && v2.x < -1.0_fx) return 0;
+        if (v0.x >  1.0_fx && v1.x >  1.0_fx && v2.x >  1.0_fx) return 0;
+        if (v0.y < -1.0_fx && v1.y < -1.0_fx && v2.y < -1.0_fx) return 0;
+        if (v0.y >  1.0_fx && v1.y >  1.0_fx && v2.y >  1.0_fx) return 0;
 
-        // --- Trivial reject ---
-        if (v0.x < left && v1.x < left && v2.x < left)   return 0;
-        if (v0.x > right && v1.x > right && v2.x > right) return 0;
-        if (v0.y < bottom && v1.y < bottom && v2.y < bottom) return 0;
-        if (v0.y > top && v1.y > top && v2.y > top)       return 0;
+        // ---- Trivial accept ------------------------------------------------
+        auto inside_all = [](const vec3& v) noexcept {
+            return v.x >= -1.0_fx && v.x <= 1.0_fx
+                   && v.y >= -1.0_fx && v.y <= 1.0_fx;
+        };
 
-        // --- Trivial accept ---
-        bool allInside =
-            (v0.x >= left   && v1.x >= left   && v2.x >= left)   &&
-            (v0.x <= right  && v1.x <= right  && v2.x <= right)  &&
-            (v0.y >= bottom && v1.y >= bottom && v2.y >= bottom) &&
-            (v0.y <= top    && v1.y <= top    && v2.y <= top);
-
-        if (allInside) {
-            outVerts[0] = v0;
-            outVerts[1] = v1;
-            outVerts[2] = v2;
+        if (inside_all(v0) && inside_all(v1) && inside_all(v2)) {
+            out_vertices[0] = v0;
+            out_vertices[1] = v1;
+            out_vertices[2] = v2;
             return 3;
         }
 
-        // --- Internal buffers ---
-        vec3 inBuf[8];
-        vec3 outBuf[8];
-
-        inBuf[0] = v0;
-        inBuf[1] = v1;
-        inBuf[2] = v2;
-
-        vec3* in  = inBuf;
-        vec3* out = outBuf;
-        int32_t inputCount = 3;
-
-        auto intersect_x = [](const vec3& a, const vec3& b, fixed32 v) -> vec3 {
-            fixed32 dx = b.x - a.x;
-            fixed32 t  = (v - a.x) / dx;
-            return { a.x + t * dx, a.y + t * (b.y - a.y) };
+        // ---- Helpers -------------------------------------------------------
+        auto lerp = [](const vec3& a, const vec3& b, fixed32 t) noexcept -> vec3 {
+            return {
+                a.x + t * (b.x - a.x),
+                a.y + t * (b.y - a.y),
+                a.z + t * (b.z - a.z)
+            };
         };
 
-        auto intersect_y = [](const vec3& a, const vec3& b, fixed32 v) -> vec3 {
-            fixed32 dy = b.y - a.y;
-            fixed32 t  = (v - a.y) / dy;
-            return { a.x + t * (b.x - a.x), a.y + t * dy };
+        // Clips edge a->b against one half-plane, appending 0-2 vertices into
+        // buf at offset n. Returns updated n.
+        auto clip_edge = [&](
+                             util::array<vec3, 7>& buf, std::size_t n,
+                             const vec3& a, const vec3& b,
+                             auto&& inside_fn, auto&& t_fn) noexcept -> std::size_t
+        {
+            const bool a_in = inside_fn(a);
+            const bool b_in = inside_fn(b);
+            if (a_in) {
+                buf[n++] = a;
+                if (!b_in) buf[n++] = lerp(a, b, t_fn(a, b));
+            } else if (b_in) {
+                buf[n++] = lerp(a, b, t_fn(a, b));
+            }
+            return n;
         };
 
-        // ============================================================
-        // Clip against LEFT (x >= left)
-        // ============================================================
-        {
-            int32_t outCount = 0;
-            fixed32 v = left;
+        // ---- Sutherland-Hodgman: 4 planes, ping-pong two 7-element buffers --
 
-            const vec3* A = &in[0];
-            const vec3* B = &in[1];
+        util::array<vec3, 7> a{}, b{};
+        std::size_t na = 0, nb = 0;
 
-            for (int i = 0; i < inputCount - 1; ++i, ++A, ++B) {
-                bool Ain = (A->x >= v);
-                bool Bin = (B->x >= v);
+        // Pass 1 — Left (x >= -1): unrolled, always exactly 3 input edges
+        auto lx_in = [](const vec3& v)                { return v.x >= -1.0_fx; };
+        auto lx_t  = [](const vec3& p, const vec3& q) { return (-1.0_fx - p.x) / (q.x - p.x); };
+        na = clip_edge(a, 0,  v0, v1, lx_in, lx_t);
+        na = clip_edge(a, na, v1, v2, lx_in, lx_t);
+        na = clip_edge(a, na, v2, v0, lx_in, lx_t);
+        if (na < 3) return 0;
 
-                if (Ain && Bin) {
-                    out[outCount++] = *B;
-                } else if (Ain && !Bin) {
-                    out[outCount++] = intersect_x(*A, *B, v);
-                } else if (!Ain && Bin) {
-                    out[outCount++] = intersect_x(*A, *B, v);
-                    out[outCount++] = *B;
-                }
-            }
+        // Pass 2 — Right (x <= 1): up to 4 input edges
+        auto rx_in = [](const vec3& v)                { return v.x <=  1.0_fx; };
+        auto rx_t  = [](const vec3& p, const vec3& q) { return ( 1.0_fx - p.x) / (q.x - p.x); };
+        nb = 0;
+        for (std::size_t i = 0; i < na; ++i)
+            nb = clip_edge(b, nb, a[i], a[i + 1 < na ? i + 1 : 0], rx_in, rx_t);
+        if (nb < 3) return 0;
 
-            const vec3& Al = in[inputCount - 1];
-            const vec3& Bl = in[0];
-            bool Ain = (Al.x >= v);
-            bool Bin = (Bl.x >= v);
+        // Pass 3 — Bottom (y >= -1): up to 5 input edges
+        auto by_in = [](const vec3& v)                { return v.y >= -1.0_fx; };
+        auto by_t  = [](const vec3& p, const vec3& q) { return (-1.0_fx - p.y) / (q.y - p.y); };
+        na = 0;
+        for (std::size_t i = 0; i < nb; ++i)
+            na = clip_edge(a, na, b[i], b[i + 1 < nb ? i + 1 : 0], by_in, by_t);
+        if (na < 3) return 0;
 
-            if (Ain && Bin) {
-                out[outCount++] = Bl;
-            } else if (Ain && !Bin) {
-                out[outCount++] = intersect_x(Al, Bl, v);
-            } else if (!Ain && Bin) {
-                out[outCount++] = intersect_x(Al, Bl, v);
-                out[outCount++] = Bl;
-            }
+        // Pass 4 — Top (y <= 1): up to 6 input edges
+        auto ty_in = [](const vec3& v)                { return v.y <=  1.0_fx; };
+        auto ty_t  = [](const vec3& p, const vec3& q) { return ( 1.0_fx - p.y) / (q.y - p.y); };
+        nb = 0;
+        for (std::size_t i = 0; i < na; ++i)
+            nb = clip_edge(b, nb, a[i], a[i + 1 < na ? i + 1 : 0], ty_in, ty_t);
+        if (nb < 3) return 0;
 
-            if (outCount == 0)
-                return 0;
-
-            vec3* tmp = in; in = out; out = tmp;
-            inputCount = outCount;
+        // ---- Fan triangulation ---------------------------------------------
+        int out_count = 0;
+        for (std::size_t i = 1; i + 1 < nb; ++i) {
+            out_vertices[out_count++] = b[0];
+            out_vertices[out_count++] = b[i];
+            out_vertices[out_count++] = b[i + 1];
         }
-
-        // ============================================================
-        // Clip against RIGHT (x <= right)
-        // ============================================================
-        {
-            int32_t outCount = 0;
-            fixed32 v = right;
-
-            const vec3* A = &in[0];
-            const vec3* B = &in[1];
-
-            for (int i = 0; i < inputCount - 1; ++i, ++A, ++B) {
-                bool Ain = (A->x <= v);
-                bool Bin = (B->x <= v);
-
-                if (Ain && Bin) {
-                    out[outCount++] = *B;
-                } else if (Ain && !Bin) {
-                    out[outCount++] = intersect_x(*A, *B, v);
-                } else if (!Ain && Bin) {
-                    out[outCount++] = intersect_x(*A, *B, v);
-                    out[outCount++] = *B;
-                }
-            }
-
-            const vec3& Al = in[inputCount - 1];
-            const vec3& Bl = in[0];
-            bool Ain = (Al.x <= v);
-            bool Bin = (Bl.x <= v);
-
-            if (Ain && Bin) {
-                out[outCount++] = Bl;
-            } else if (Ain && !Bin) {
-                out[outCount++] = intersect_x(Al, Bl, v);
-            } else if (!Ain && Bin) {
-                out[outCount++] = intersect_x(Al, Bl, v);
-                out[outCount++] = Bl;
-            }
-
-            if (outCount == 0)
-                return 0;
-
-            vec3* tmp = in; in = out; out = tmp;
-            inputCount = outCount;
-        }
-
-        // ============================================================
-        // Clip against BOTTOM (y >= bottom)
-        // ============================================================
-        {
-            int32_t outCount = 0;
-            fixed32 v = bottom;
-
-            const vec3* A = &in[0];
-            const vec3* B = &in[1];
-
-            for (int i = 0; i < inputCount - 1; ++i, ++A, ++B) {
-                bool Ain = (A->y >= v);
-                bool Bin = (B->y >= v);
-
-                if (Ain && Bin) {
-                    out[outCount++] = *B;
-                } else if (Ain && !Bin) {
-                    out[outCount++] = intersect_y(*A, *B, v);
-                } else if (!Ain && Bin) {
-                    out[outCount++] = intersect_y(*A, *B, v);
-                    out[outCount++] = *B;
-                }
-            }
-
-            const vec3& Al = in[inputCount - 1];
-            const vec3& Bl = in[0];
-            bool Ain = (Al.y >= v);
-            bool Bin = (Bl.y >= v);
-
-            if (Ain && Bin) {
-                out[outCount++] = Bl;
-            } else if (Ain && !Bin) {
-                out[outCount++] = intersect_y(Al, Bl, v);
-            } else if (!Ain && Bin) {
-                out[outCount++] = intersect_y(Al, Bl, v);
-                out[outCount++] = Bl;
-            }
-
-            if (outCount == 0)
-                return 0;
-
-            vec3* tmp = in; in = out; out = tmp;
-            inputCount = outCount;
-        }
-
-        // ============================================================
-        // Clip against TOP (y <= top)
-        // ============================================================
-        {
-            int32_t outCount = 0;
-            fixed32 v = top;
-
-            const vec3* A = &in[0];
-            const vec3* B = &in[1];
-
-            for (int i = 0; i < inputCount - 1; ++i, ++A, ++B) {
-                bool Ain = (A->y <= v);
-                bool Bin = (B->y <= v);
-
-                if (Ain && Bin) {
-                    out[outCount++] = *B;
-                } else if (Ain && !Bin) {
-                    out[outCount++] = intersect_y(*A, *B, v);
-                } else if (!Ain && Bin) {
-                    out[outCount++] = intersect_y(*A, *B, v);
-                    out[outCount++] = *B;
-                }
-            }
-
-            const vec3& Al = in[inputCount - 1];
-            const vec3& Bl = in[0];
-            bool Ain = (Al.y <= v);
-            bool Bin = (Bl.y <= v);
-
-            if (Ain && Bin) {
-                out[outCount++] = Bl;
-            } else if (Ain && !Bin) {
-                out[outCount++] = intersect_y(Al, Bl, v);
-            } else if (!Ain && Bin) {
-                out[outCount++] = intersect_y(Al, Bl, v);
-                out[outCount++] = Bl;
-            }
-
-            if (outCount == 0)
-                return 0;
-
-            vec3* tmp = in; in = out; out = tmp;
-            inputCount = outCount;
-        }
-
-        // --- Copy result ---
-        for (int i = 0; i < inputCount; ++i)
-            outVerts[i] = in[i];
-
-        return inputCount;
+        return out_count;
     }
-
 
     [[nodiscard]] auto clip_triangle_screen_space_dummy_(vec3 const & v0, vec3 const & v1, vec3 const & v2, util::array<vec3, 8>& outVerts) -> uint32_t
     {
@@ -782,10 +643,10 @@ private:
         vec3 a = v1 - v0;
         vec3 b = v2 - v0;
         vec3 normal = vec3::cross(a, b);
-        return normal.z <  0.0_fx;
+        return normal.z >  0.0_fx;
     }
 
-    auto to_screen_space_(vec2& p) -> void
+    auto to_screen_space_(vec3& p) -> void
     {
         // Map from [-1, +1] → [0, 1]
         fixed32 sx = (p.x + 1.0_fx) * 0.5_fx;
