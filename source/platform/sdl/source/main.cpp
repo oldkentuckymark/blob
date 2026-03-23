@@ -51,13 +51,9 @@ public:
 
         in = in - camPos;
 
-        // in.z.data |= 1; //ensure z is never zero
-        // in.x = in.x / in.z;
-        // in.y = in.y / in.z;
-
     }
 
-    ffm::vec3 camPos{0.0_fx,0.0_fx,-4_fx};
+    ffm::vec3 camPos{0.0_fx,0.0_fx,0_fx};
     ffm::vec3 rotation{0_fx,0_fx,0_fx};
 
 };
@@ -70,7 +66,7 @@ public:
     {
         SDL_Init(SDL_INIT_VIDEO);
         SDL_CreateWindowAndRenderer(240*6,160*6,0,&win,&ren);
-        SDL_RenderSetScale(ren, 4.0,4.0);
+        SDL_RenderSetScale(ren, 6.0,6.0);
     }
 
     ~SDL_Context()
@@ -188,13 +184,23 @@ auto main() -> int
 
         ctx.clear();
 
-        ctx.setVertexPointer(3,0,(void*)cubepos);
-        ctx.setColorPointer(0, (uint16_t*)cubecol);
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(cubepos)/sizeof(ffm::vec3));
-        ctx.getVertexFunction().rotation.x = ctx.getVertexFunction().rotation.x + 0.001_fx;
-        ctx.getVertexFunction().rotation.y = ctx.getVertexFunction().rotation.y + 0.001_fx;
-        ctx.getVertexFunction().rotation.z = ctx.getVertexFunction().rotation.z + 0.001_fx;
-        //ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.001_fx;
+        ctx.setVertexPointer(3,0,(void*)ballpos);
+        ctx.setColorPointer(0, (uint16_t*)ballcol);
+        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-1.8_fx};
+        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
+
+
+
+        ctx.setVertexPointer(3,0,(void*)blobbluepos);
+        ctx.setColorPointer(0, (uint16_t*)blobbluecol);
+        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-1.8_fx};
+        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
+
+
+        ctx.setVertexPointer(3,0,(void*)blobredpos);
+        ctx.setColorPointer(0, (uint16_t*)blobredcol);
+        ctx.getVertexFunction().camPos = {2.0_fx,0.0_fx,-1.8_fx};
+        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
 
         ctx.present();
 

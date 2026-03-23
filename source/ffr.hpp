@@ -282,6 +282,7 @@ public:
         viewport_height_ = h;
         viewport_width_fx_ = static_cast<int16_t>(w);
         viewport_height_fx_ = static_cast<int16_t>(h);
+        aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
     }
 
     auto drawArray(DrawType dt, uint32_t first, uint32_t count) -> void
@@ -523,9 +524,9 @@ private:
     auto project_to_ndc_(vec3& p) -> void
     {
         //p.z.data |= 0b00000000000000000000000000000001;
+        p.x = p.x * aspect_ratio_;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
-
     }
 
     [[nodiscard]] auto clip_triangle_screen_space_(vec3 const& v0, vec3 const& v1, vec3 const& v2,
@@ -808,6 +809,7 @@ private:
     uint32_t viewport_height_{0};
     fixed32 viewport_width_fx_{0.0_fx};
     fixed32 viewport_height_fx_{0.0_fx};
+    fixed32 aspect_ratio_{0.0_fx};
 
     util::array<vec3, MAX_VERTS> working_vertex_buffer_;
     uint32_t working_vertex_buffer_size_{0};
