@@ -344,7 +344,7 @@ public:
         //run vertex function
         for(uint32_t i = 0; i < working_vertex_buffer_size_; ++i)
         {
-            vf_[0](working_vertex_buffer_[i]);
+            vf_(working_vertex_buffer_[i]);
         }
 
 
@@ -404,6 +404,11 @@ public:
             }
         }
 
+    }
+
+    auto getVertexFunction() -> VERTEX_FUNCTION&
+    {
+        return vf_;
     }
 
 private:
@@ -517,7 +522,7 @@ private:
 
     auto project_to_ndc_(vec3& p) -> void
     {
-        p.z.data |= 0b00000000000000000000000000000001;
+        //p.z.data |= 0b00000000000000000000000000000001;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
 
@@ -776,7 +781,7 @@ private:
         vec3 a = v1 - v0;
         vec3 b = v2 - v0;
         vec3 normal = vec3::cross(a, b);
-        return normal.z > 0.0_fx;
+        return normal.z <  0.0_fx;
     }
 
     auto to_screen_space_(vec2& p) -> void
