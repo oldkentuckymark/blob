@@ -17,7 +17,7 @@ constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b
 
 }
 
-constexpr auto Convert555to888(uint32_t color) -> util::array<uint8_t, 4>
+constexpr auto Convert555to888(uint32_t color) -> std::array<uint8_t, 4>
 {
     uint8_t const red = (color & 31) << 3;
     uint8_t const green = ((color >> 5) & 31) << 3;
@@ -388,7 +388,7 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 project_to_ndc_(v0);project_to_ndc_(v1);project_to_ndc_(v2);
 
-                util::array<vec3,15> arr;
+                std::array<vec3,15> arr;
                 auto n = clip_and_triangulate_ndc(v0,v1,v2,arr);
                 for(uint32_t k = 0; k < n; k = k + 3)
                 {
@@ -535,7 +535,7 @@ private:
 
     [[nodiscard]] auto clip_and_triangulate_ndc(
         const vec3& v0, const vec3& v1, const vec3& v2,
-        util::array<vec3, 15>& out_vertices) noexcept -> int32_t
+        std::array<vec3, 15>& out_vertices) noexcept -> int32_t
     {
         // ---- Trivial reject ------------------------------------------------
         if (v0.x < -1.0_fx && v1.x < -1.0_fx && v2.x < -1.0_fx) return 0;
@@ -568,7 +568,7 @@ private:
         // Clips edge a->b against one half-plane, appending 0-2 vertices into
         // buf at offset n. Returns updated n.
         auto clip_edge = [&](
-                             util::array<vec3, 7>& buf, std::size_t n,
+                             std::array<vec3, 7>& buf, std::size_t n,
                              const vec3& a, const vec3& b,
                              auto&& inside_fn, auto&& t_fn) noexcept -> std::size_t
         {
@@ -585,7 +585,7 @@ private:
 
         // ---- Sutherland-Hodgman: 4 planes, ping-pong two 7-element buffers --
 
-        util::array<vec3, 7> a{}, b{};
+        std::array<vec3, 7> a{}, b{};
         std::size_t na = 0, nb = 0;
 
         // Pass 1 — Left (x >= -1): unrolled, always exactly 3 input edges
@@ -630,7 +630,7 @@ private:
         return out_count;
     }
 
-    [[nodiscard]] auto clip_triangle_screen_space_dummy_(vec3 const & v0, vec3 const & v1, vec3 const & v2, util::array<vec3, 8>& outVerts) -> uint32_t
+    [[nodiscard]] auto clip_triangle_screen_space_dummy_(vec3 const & v0, vec3 const & v1, vec3 const & v2, std::array<vec3, 8>& outVerts) -> uint32_t
     {
         outVerts[0] = v0;
         outVerts[1] = v1;
@@ -672,10 +672,10 @@ private:
     fixed32 viewport_height_fx_{0.0_fx};
     fixed32 aspect_ratio_{0.0_fx};
 
-    util::array<vec3, MAX_VERTS> working_vertex_buffer_;
+    std::array<vec3, MAX_VERTS> working_vertex_buffer_;
     uint32_t working_vertex_buffer_size_{0};
 
-    util::array<uint16_t, MAX_VERTS> working_color_buffer_;
+    std::array<uint16_t, MAX_VERTS> working_color_buffer_;
     uint32_t working_color_buffer_size_{0};
 
     static constexpr vec4 frustrum_[6] =

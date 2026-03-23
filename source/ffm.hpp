@@ -159,7 +159,7 @@ static constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
 
 namespace
 {
-using LUT = util::array<fixed32, GAMDEG_IN_CIRCLE>;
+using LUT = std::array<fixed32, GAMDEG_IN_CIRCLE>;
 
 consteval auto taylorSin(double const x) -> double
 {

@@ -1,5 +1,31 @@
 #pragma once
 
+#include <vector>
+
+consteval auto createMesh(unsigned char data[])
+{
+    std::vector<int> f;
+    f.push_back(4);
+    f.push_back(6);
+
+}
+
+
+consteval auto createBall()
+{
+
+    constexpr unsigned char ballcsv[] =
+    {
+        #embed "../data/blobblue.pos"
+    };
+
+
+}
+
+
+
+
+
 static constexpr unsigned char blobbluepos[] =
 {
     #embed "../data/blobblue.pos"
