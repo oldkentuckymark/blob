@@ -1,6 +1,8 @@
 #include "ffr.hpp"
 #include <chrono>
-#include <SDL2/SDL.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_events.h>
 #include "meshes.hpp"
 
 
@@ -65,8 +67,7 @@ public:
     SDL_Context()
     {
         SDL_Init(SDL_INIT_VIDEO);
-        SDL_CreateWindowAndRenderer(240*6,160*6,0,&win,&ren);
-        SDL_RenderSetScale(ren, 6.0,6.0);
+        SDL_CreateWindowAndRenderer("blob",240*6,160*6,0,&win,&ren);
     }
 
     ~SDL_Context()
@@ -90,7 +91,7 @@ public:
     {
         auto cc = ffr::Convert555to888(c);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
-        SDL_RenderDrawPoint(ren,x,y);
+        SDL_RenderPoint(ren,x,y);
     }
 
 private:
@@ -118,17 +119,17 @@ auto main() -> int
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
-            if(e.type == SDL_QUIT)
+            if(e.type == SDL_EVENT_QUIT)
             {
                 running = false;
             }
-            else if(e.type == SDL_MOUSEMOTION)
+            else if(e.type == SDL_EVENT_MOUSE_MOTION)
             {
                 //cam0ref.yaw_ -= (float)e.motion.xrel / 200.f;
 
             }
         }
-        uint8_t const * const keys = SDL_GetKeyboardState(nullptr);
+        auto const * const keys = SDL_GetKeyboardState(nullptr);
         if (keys[SDL_SCANCODE_ESCAPE])
         {
             running = false;

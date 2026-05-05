@@ -48,14 +48,13 @@ add_executable(blob-sdl
 
 
 if(UNIX)
-    find_library(SDL2MAIN_LIBRARY SDL2main)
-    find_library(SDL2_LIBRARY SDL2)
+    find_library(SDL3_LIBRARY SDL3)
     find_library(PTHREADS_LIBRARY NAMES pthread)
 endif()
 
 target_compile_features(blob-sdl PUBLIC cxx_std_23)
 set_target_properties(blob-sdl PROPERTIES CXX_EXTENSIONS OFF)
-target_link_libraries(blob-sdl ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY} ${PTHREAD_LIBRARY})
+target_link_libraries(blob-sdl ${SDL3_LIBRARY} ${PTHREAD_LIBRARY})
 target_include_directories(blob-sdl PUBLIC source)
 target_include_directories(blob-sdl PUBLIC /opt/devkitpro/libgba/include)
 
