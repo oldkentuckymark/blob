@@ -1,3 +1,6 @@
+//TODO: parse CSV/OBJ files at compile time for #embed
+
+
 #include "ffr.hpp"
 #include <chrono>
 #include <SDL3/SDL.h>
@@ -68,6 +71,7 @@ public:
     {
         SDL_Init(SDL_INIT_VIDEO);
         SDL_CreateWindowAndRenderer("blob",240*6,160*6,0,&win,&ren);
+        SDL_SetRenderScale(ren,6.0f,6.0f);
     }
 
     ~SDL_Context()
