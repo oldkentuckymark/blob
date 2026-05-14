@@ -9,16 +9,9 @@
 #include "meshes.hpp"
 
 
-class FFT
-{
-public:
-    auto operator () (ffm::vec3& in) -> void
-    {
 
-    }
-};
 
-class FFT2
+class FFT final : public ffr::VertexFunction
 {
 public:
     auto operator()(ffm::vec3& in) -> void
@@ -64,7 +57,7 @@ public:
 };
 
 
-class SDL_Context final : public ffr::Context<FFT2>
+class SDL_Context final : public ffr::Context
 {
 public:
     SDL_Context()
@@ -108,10 +101,10 @@ private:
 auto main() -> int
 {
 
-
+    FFT vf;
     SDL_Context ctx;
     ctx.setViewPort(240,160);
-
+    ctx.setVertexFunction(&vf);
 
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
@@ -191,21 +184,9 @@ auto main() -> int
 
         ctx.setVertexPointer(3,0,(void*)ballpos);
         ctx.setColorPointer(0, (uint16_t*)ballcol);
-        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
+        vf.camPos = {0.0_fx,0.0_fx,-2.8_fx};
         ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
 
-
-
-        ctx.setVertexPointer(3,0,(void*)blobbluepos);
-        ctx.setColorPointer(0, (uint16_t*)blobbluecol);
-        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
-
-
-        ctx.setVertexPointer(3,0,(void*)blobredpos);
-        ctx.setColorPointer(0, (uint16_t*)blobredcol);
-        ctx.getVertexFunction().camPos = {2.0_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
 
         ctx.present();
 

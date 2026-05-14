@@ -33,8 +33,12 @@ enum class DrawType : uint32_t
     Triangles = 3
 };
 
+class VertexFunction
+{
+public:
+    virtual auto operator()(ffm::vec3&) -> void = 0;
+};
 
-template<class VERTEX_FUNCTION, std::size_t MAX_VERTS = 128>
 class Context
 {
 public:
@@ -55,7 +59,7 @@ public:
 
         if (steep)
         {
-            int32_t tmp = x0;
+            int16_t tmp = x0;
             x0 = y0;
             y0 = tmp;
 
@@ -258,10 +262,13 @@ public:
         }
     }
 
-
-
     virtual auto clear() -> void {}
     virtual auto present() -> void {}
+
+    auto setVertexFunction(VertexFunction* vf) -> void
+    {
+        vf_ = vf;
+    }
 
     auto setVertexPointer(uint32_t size, uint32_t stride, void* vp) -> void
     {
@@ -313,39 +320,19 @@ public:
             }
         }
 
-        if(current_draw_type_ == DrawType::Points)
+        for(uint16_t i = first; i < (first + count); ++i)
         {
-            for(uint16_t i = first; i < (first + count); ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                ++working_color_buffer_size_;
-            }
+            working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
+            ++working_color_buffer_size_;
         }
-        else if(current_draw_type_ == DrawType::Lines)
-        {
-            for(uint16_t i = first; i < (first + count) / 2; ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                working_color_buffer_size_ ++;
-            }
 
-        }
-        else if(current_draw_type_ == DrawType::Triangles)
-        {
-            for(uint16_t i = first; i < (first + count) / 3; ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                working_color_buffer_size_ ++;
-            }
-
-        }
 
         //vertex_pipeline_();
 
         //run vertex function
         for(uint32_t i = 0; i < working_vertex_buffer_size_; ++i)
         {
-            vf_(working_vertex_buffer_[i]);
+            vf_[0](working_vertex_buffer_[i]);
         }
 
 
@@ -362,7 +349,7 @@ public:
 
                 if(clip_point_screen_space_(cvs))
                 {
-                    plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), UINT16_MAX);
+                    plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), ccs);
                 }
                 ++col;
             }
@@ -376,7 +363,7 @@ public:
                 if(clip_line_screen_space_(p0, p1))
                 {
                     line(static_cast<int16_t>(p0.x), static_cast<int16_t>(p0.y),
-                         static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), UINT16_MAX);
+                         static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), ccs);
                 }
                 ++i;
                 ++col;
@@ -411,12 +398,9 @@ public:
 
     }
 
-    auto getVertexFunction() -> VERTEX_FUNCTION&
-    {
-        return vf_;
-    }
-
 private:
+
+    static constexpr uint16_t MAX_VERTS = 128;
 
     [[nodiscard]] auto clip_point_screen_space_(vec3 const & p) -> bool
     {
@@ -657,7 +641,7 @@ private:
         p.y = sy * viewport_height_fx_;
     }
 
-    VERTEX_FUNCTION vf_;
+    VertexFunction* vf_;
 
     void* vertex_pointer_{nullptr};
     uint32_t vertex_size_{0};

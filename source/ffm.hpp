@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-
+#include <array>
 #include "util.hpp"
 
 namespace ffm
