@@ -55,6 +55,7 @@ endif()
 
 target_compile_features(blob-sdl PUBLIC cxx_std_26)
 set_target_properties(blob-sdl PROPERTIES CXX_EXTENSIONS OFF)
+#target_compile_options(blob-sdl PUBLIC -freflection)
 target_link_libraries(blob-sdl ${SDL3_LIBRARY} ${PTHREAD_LIBRARY})
 target_include_directories(blob-sdl PUBLIC source)
 target_include_directories(blob-sdl PUBLIC /opt/devkitpro/libgba/include)
