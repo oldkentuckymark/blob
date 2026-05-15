@@ -182,10 +182,11 @@ auto main() -> int
 
         ctx.clear();
 
-        ctx.setVertexPointer(3,0,(void*)ballpos);
-        ctx.setColorPointer(0, (uint16_t*)ballcol);
+        ctx.setVertexPointer(3,0,(void*) &BALL_VERTS[0]);
+        ctx.setColorPointer(0, (uint16_t*) &BALL_COLS[0]);
         vf.camPos = {0.0_fx,0.0_fx,-2.8_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
+        vf.rotation.x = vf.rotation.x + 0.001_fx;
+        ctx.drawArray(ffr::DrawType::Triangles, 0, BALL_VERTS_SIZE/3);
 
 
         ctx.present();
