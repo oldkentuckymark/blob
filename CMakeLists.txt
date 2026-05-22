@@ -19,12 +19,12 @@ set(BLOB_HEADERS
     source/meshes.hpp
     source/player.hpp
     source/strtonum.hpp
+    source/csv.hpp
 )
 
 
 
 set(BLOB_SOURCES
-
 
 )
 
@@ -44,6 +44,7 @@ add_executable(blob-sdl
 
 
 
+
 )
 
 
@@ -52,8 +53,9 @@ if(UNIX)
     find_library(PTHREADS_LIBRARY NAMES pthread)
 endif()
 
-target_compile_features(blob-sdl PUBLIC cxx_std_23)
+target_compile_features(blob-sdl PUBLIC cxx_std_26)
 set_target_properties(blob-sdl PROPERTIES CXX_EXTENSIONS OFF)
+#target_compile_options(blob-sdl PUBLIC -freflection)
 target_link_libraries(blob-sdl ${SDL3_LIBRARY} ${PTHREAD_LIBRARY})
 target_include_directories(blob-sdl PUBLIC source)
 target_include_directories(blob-sdl PUBLIC /opt/devkitpro/libgba/include)
