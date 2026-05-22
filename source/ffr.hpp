@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 #include "ffm.hpp"
@@ -357,10 +358,10 @@ public:
             if(current_draw_type_ == DrawType::Points)
             {
                 vec3& cvs = working_vertex_buffer_[i];
-                project_to_ndc_(cvs);
-                to_screen_space_(cvs);
+                project_to_ndc(cvs);
+                to_screen_space(cvs);
 
-                if(clip_point_screen_space_(cvs))
+                if(clip_point_screen_space(cvs))
                 {
                     plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), UINT16_MAX);
                 }
@@ -370,10 +371,10 @@ public:
             {
                 vec3& p0{working_vertex_buffer_[i]};
                 vec3& p1{working_vertex_buffer_[i+1]};
-                project_to_ndc_(p0); project_to_ndc_(p1);
-                to_screen_space_(p0); to_screen_space_(p1);
+                project_to_ndc(p0); project_to_ndc(p1);
+                to_screen_space(p0); to_screen_space(p1);
 
-                if(clip_line_screen_space_(p0, p1))
+                if(clip_line_screen_space(p0, p1))
                 {
                     line(static_cast<int16_t>(p0.x), static_cast<int16_t>(p0.y),
                          static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), UINT16_MAX);
@@ -386,21 +387,24 @@ public:
                 vec3& v0{working_vertex_buffer_[i]};
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
-                project_to_ndc_(v0);project_to_ndc_(v1);project_to_ndc_(v2);
+                project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
 
-                std::array<vec3,15> arr;
-                auto n = clip_and_triangulate_ndc(v0,v1,v2,arr);
-                for(uint32_t k = 0; k < n; k = k + 3)
+                if(is_front_facing(v0, v1, v2))
                 {
-                    if(is_front_facing(arr[k], arr[k+1], arr[k+2]))
-                    {
+                    to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
 
-                        to_screen_space_(arr[k]);to_screen_space_(arr[k+1]);to_screen_space_(arr[k+2]);
-                        triangle(static_cast<int16_t>(arr[k].x), static_cast<int16_t>(arr[k].y),
-                                 static_cast<int16_t>(arr[k+1].x), static_cast<int16_t>(arr[k+1].y),
-                                 static_cast<int16_t>(arr[k+2].x), static_cast<int16_t>(arr[k+2].y), ccs);
+                    std::array<vec3, 6> arr;
+                    auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
+
+
+                    for(auto i = 0ul; i < k; i = i + 3)
+                    {
+                        triangle(static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y),
+                            static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y),
+                            static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y), ccs);
                     }
                 }
+
 
 
 
@@ -418,13 +422,146 @@ public:
 
 private:
 
-    [[nodiscard]] auto clip_point_screen_space_(vec3 const & p) -> bool
+    int clipAndTriangulateTriangle(
+        const vec3& A,
+        const vec3& B,
+        const vec3& C,
+        std::array<vec3,6>& outVerts)
+    {
+        const auto left   = 0.0_fx;
+        const auto right  = viewport_width_fx_;
+        const auto bottom = 0.0_fx;
+        const auto top    = viewport_height_fx_;
+
+        std::array<vec3,6> poly{};
+        std::array<vec3,6> temp{};
+        int polyCount = 3;
+
+        // Input (no asserts)
+        poly[0] = A;
+        poly[1] = B;
+        poly[2] = C;
+
+        auto inside = [&](const vec2& p, int edge) {
+            switch (edge) {
+            case 0: return p.x >= left;   // LEFT
+            case 1: return p.x <= right;  // RIGHT
+            case 2: return p.y >= bottom; // BOTTOM
+            case 3: return p.y <= top;    // TOP
+            }
+            return false;
+        };
+
+        auto intersect = [&](const vec3& P, const vec3& Q, int edge) {
+            vec2 p(P.x, P.y);
+            vec2 q(Q.x, Q.y);
+            vec2 d = q - p;
+
+            auto t = 0.0_fx;
+
+            switch (edge) {
+            case 0: t = (left   - p.x) / d.x; break;
+            case 1: t = (right  - p.x) / d.x; break;
+            case 2: t = (bottom - p.y) / d.y; break;
+            case 3: t = (top    - p.y) / d.y; break;
+            }
+
+            vec2 xy = p + d * t;
+            auto z = P.z + (Q.z - P.z) * t;
+
+            return vec3{xy.x, xy.y, z};
+        };
+
+        // ------------------------------
+        // Sutherland–Hodgman clipping
+        // ------------------------------
+        for (int edge = 0; edge < 4; ++edge) {
+            if (polyCount == 0)
+                return 0;
+
+            int tempCount = 0;
+
+            for (int i = 0; i < polyCount; ++i) {
+                vec3 P = poly[i];
+                vec3 Q = poly[(i + 1) % polyCount];
+
+                vec2 p2(P.x, P.y);
+                vec2 q2(Q.x, Q.y);
+
+                bool Pin = inside(p2, edge);
+                bool Qin = inside(q2, edge);
+
+                if (Pin && Qin) {
+                    temp[tempCount++] = Q;
+                }
+                else if (Pin && !Qin) {
+                    temp[tempCount++] = intersect(P, Q, edge);
+                }
+                else if (!Pin && Qin) {
+                    temp[tempCount++] = intersect(P, Q, edge);
+                    temp[tempCount++] = Q;
+                }
+            }
+
+            polyCount = tempCount;
+            for (int i = 0; i < tempCount; ++i)
+                poly[i] = temp[i];
+        }
+
+        if (polyCount < 3)
+            return 0;
+
+        // ------------------------------
+        // Triangulation
+        // ------------------------------
+        int outCount = 0;
+
+        if (polyCount == 3) {
+            outVerts[0] = poly[0];
+            outVerts[1] = poly[1];
+            outVerts[2] = poly[2];
+            outCount = 3;
+        }
+        else {
+            for (int i = 1; i < polyCount - 1; ++i) {
+                outVerts[outCount++] = poly[0];
+                outVerts[outCount++] = poly[i];
+                outVerts[outCount++] = poly[i + 1];
+            }
+        }
+
+        // ------------------------------
+        // FINAL CLAMP (guarantees safety)
+        // ------------------------------
+        for (int i = 0; i < outCount; ++i) {
+            auto &v = outVerts[i];
+
+            if (v.x < left)   v.x = left;
+            if (v.y < bottom) v.y = bottom;
+            if (v.x > right)  v.x = right;
+            if (v.y > top)    v.y = top;
+        }
+
+        // ------------------------------
+        // FINAL ASSERTS (only here)
+        // ------------------------------
+        for (int i = 0; i < outCount; ++i) {
+            assert(outVerts[i].x >= 0.0_fx);
+            assert(outVerts[i].y >= 0.0_fx);
+            assert(outVerts[i].x <= viewport_width_fx_);
+            assert(outVerts[i].y <= viewport_height_fx_);
+        }
+
+        return outCount;
+    }
+
+    [[nodiscard]] auto clip_point_screen_space(vec3 const & p) -> bool
     {
         return !(p.x < 0.0_fx || p.x >= viewport_width_fx_ ||
                 p.y < 0.0_fx || p.y >= viewport_height_fx_ );
     }
 
-    [[nodiscard]] auto clip_line_screen_space_(vec3 &p0, vec3 &p1) -> bool
+    [[nodiscard]] auto clip_line_screen_space(vec3 &p0, vec3 &p1) -> bool
     {
         const int32_t xmax = viewport_width_  - 1;
         const int32_t ymax = viewport_height_ - 1;
@@ -525,117 +662,12 @@ private:
         return true;
     }
 
-    auto project_to_ndc_(vec3& p) -> void
+    auto project_to_ndc(vec3& p) -> void
     {
         //p.z.data |= 0b00000000000000000000000000000001;
         p.x = p.x * aspect_ratio_;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
-    }
-
-    [[nodiscard]] auto clip_and_triangulate_ndc(
-        const vec3& v0, const vec3& v1, const vec3& v2,
-        std::array<vec3, 15>& out_vertices) noexcept -> int32_t
-    {
-        // ---- Trivial reject ------------------------------------------------
-        if (v0.x < -1.0_fx && v1.x < -1.0_fx && v2.x < -1.0_fx) return 0;
-        if (v0.x >  1.0_fx && v1.x >  1.0_fx && v2.x >  1.0_fx) return 0;
-        if (v0.y < -1.0_fx && v1.y < -1.0_fx && v2.y < -1.0_fx) return 0;
-        if (v0.y >  1.0_fx && v1.y >  1.0_fx && v2.y >  1.0_fx) return 0;
-
-        // ---- Trivial accept ------------------------------------------------
-        auto inside_all = [](const vec3& v) noexcept {
-            return v.x >= -1.0_fx && v.x <= 1.0_fx
-                   && v.y >= -1.0_fx && v.y <= 1.0_fx;
-        };
-
-        if (inside_all(v0) && inside_all(v1) && inside_all(v2)) {
-            out_vertices[0] = v0;
-            out_vertices[1] = v1;
-            out_vertices[2] = v2;
-            return 3;
-        }
-
-        // ---- Helpers -------------------------------------------------------
-        auto lerp = [](const vec3& a, const vec3& b, fixed32 t) noexcept -> vec3 {
-            return {
-                a.x + t * (b.x - a.x),
-                a.y + t * (b.y - a.y),
-                a.z + t * (b.z - a.z)
-            };
-        };
-
-        // Clips edge a->b against one half-plane, appending 0-2 vertices into
-        // buf at offset n. Returns updated n.
-        auto clip_edge = [&](
-                             std::array<vec3, 7>& buf, std::size_t n,
-                             const vec3& a, const vec3& b,
-                             auto&& inside_fn, auto&& t_fn) noexcept -> std::size_t
-        {
-            const bool a_in = inside_fn(a);
-            const bool b_in = inside_fn(b);
-            if (a_in) {
-                buf[n++] = a;
-                if (!b_in) buf[n++] = lerp(a, b, t_fn(a, b));
-            } else if (b_in) {
-                buf[n++] = lerp(a, b, t_fn(a, b));
-            }
-            return n;
-        };
-
-        // ---- Sutherland-Hodgman: 4 planes, ping-pong two 7-element buffers --
-
-        std::array<vec3, 7> a{}, b{};
-        std::size_t na = 0, nb = 0;
-
-        // Pass 1 — Left (x >= -1): unrolled, always exactly 3 input edges
-        auto lx_in = [](const vec3& v)                { return v.x >= -1.0_fx; };
-        auto lx_t  = [](const vec3& p, const vec3& q) { return (-1.0_fx - p.x) / (q.x - p.x); };
-        na = clip_edge(a, 0,  v0, v1, lx_in, lx_t);
-        na = clip_edge(a, na, v1, v2, lx_in, lx_t);
-        na = clip_edge(a, na, v2, v0, lx_in, lx_t);
-        if (na < 3) return 0;
-
-        // Pass 2 — Right (x <= 1): up to 4 input edges
-        auto rx_in = [](const vec3& v)                { return v.x <=  1.0_fx; };
-        auto rx_t  = [](const vec3& p, const vec3& q) { return ( 1.0_fx - p.x) / (q.x - p.x); };
-        nb = 0;
-        for (std::size_t i = 0; i < na; ++i)
-            nb = clip_edge(b, nb, a[i], a[i + 1 < na ? i + 1 : 0], rx_in, rx_t);
-        if (nb < 3) return 0;
-
-        // Pass 3 — Bottom (y >= -1): up to 5 input edges
-        auto by_in = [](const vec3& v)                { return v.y >= -1.0_fx; };
-        auto by_t  = [](const vec3& p, const vec3& q) { return (-1.0_fx - p.y) / (q.y - p.y); };
-        na = 0;
-        for (std::size_t i = 0; i < nb; ++i)
-            na = clip_edge(a, na, b[i], b[i + 1 < nb ? i + 1 : 0], by_in, by_t);
-        if (na < 3) return 0;
-
-        // Pass 4 — Top (y <= 1): up to 6 input edges
-        auto ty_in = [](const vec3& v)                { return v.y <=  1.0_fx; };
-        auto ty_t  = [](const vec3& p, const vec3& q) { return ( 1.0_fx - p.y) / (q.y - p.y); };
-        nb = 0;
-        for (std::size_t i = 0; i < na; ++i)
-            nb = clip_edge(b, nb, a[i], a[i + 1 < na ? i + 1 : 0], ty_in, ty_t);
-        if (nb < 3) return 0;
-
-        // ---- Fan triangulation ---------------------------------------------
-        int out_count = 0;
-        for (std::size_t i = 1; i + 1 < nb; ++i) {
-            out_vertices[out_count++] = b[0];
-            out_vertices[out_count++] = b[i];
-            out_vertices[out_count++] = b[i + 1];
-        }
-        return out_count;
-    }
-
-    [[nodiscard]] auto clip_triangle_screen_space_dummy_(vec3 const & v0, vec3 const & v1, vec3 const & v2, std::array<vec3, 8>& outVerts) -> uint32_t
-    {
-        outVerts[0] = v0;
-        outVerts[1] = v1;
-        outVerts[2] = v2;
-        return 3;
     }
 
     [[nodiscard]] auto is_front_facing(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> bool
@@ -646,7 +678,7 @@ private:
         return normal.z >  0.0_fx;
     }
 
-    auto to_screen_space_(vec3& p) -> void
+    auto to_screen_space(vec3& p) -> void
     {
         // Map from [-1, +1] → [0, 1]
         fixed32 sx = (p.x + 1.0_fx) * 0.5_fx;
