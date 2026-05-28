@@ -69,75 +69,75 @@ public:
 
 };
 
-class ADVF_Context final : public ffr::Context<FFT>
-{
-public:
-    ADVF_Context()
-    {
-    }
+// class ADVF_Context final : public ffr::Context<FFT>
+// {
+// public:
+//     ADVF_Context()
+//     {
+//     }
 
-    ~ADVF_Context()
-    {
+//     ~ADVF_Context()
+//     {
 
-    }
+//     }
 
-    inline void clear() override
-    {
-        for(volatile uint16_t* p = vram;p < vram+(160*128);++p)
-        {
-            *p = 0;
-        }
-    }
+//     inline void clear() override
+//     {
+//         for(volatile uint16_t* p = vram;p < vram+(160*128);++p)
+//         {
+//             *p = 0;
+//         }
+//     }
 
-    inline void present() override
-    {
-        flipPage();
-    }
+//     inline void present() override
+//     {
+//         flipPage();
+//     }
 
-    inline void plot(int16_t x, int16_t y, uint16_t c) override
-    {
-        vram[(y*128)+x] = c;
-    }
+//     inline void plot(int16_t x, int16_t y, uint16_t c) override
+//     {
+//         vram[(y*128)+x] = c;
+//     }
 
-    inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
-    {
-        if(x0 > x1)
-        {
-            auto tmp = x0;
-            x0 = x1;
-            x1 = tmp;
-        }
+//     inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
+//     {
+//         if(x0 > x1)
+//         {
+//             auto tmp = x0;
+//             x0 = x1;
+//             x1 = tmp;
+//         }
 
-        for(uint16_t* p = (uint16_t*)&vram[y0*160+x0]; p <= &vram[y0*160+x1]; ++p)
-        {
-            *p = color;
-        }
-    }
+//         for(uint16_t* p = (uint16_t*)&vram[y0*160+x0]; p <= &vram[y0*160+x1]; ++p)
+//         {
+//             *p = color;
+//         }
+//     }
 
-private:
-    volatile uint16_t * vram = reinterpret_cast<uint16_t*>(0x06000000);;
+// private:
+//     volatile uint16_t * vram = reinterpret_cast<uint16_t*>(0x06000000);;
 
-    inline void flipPage()
-    {
-        //return;
-        // Wait for VBlank to avoid tearing
-        //while (*(volatile u16*)0x04000006 >= 160); // Wait until VDraw ends
-        //while (*(volatile u16*)0x04000006 < 160);  // Wait until VBlank ends
+//     inline void flipPage()
+//     {
+//         //return;
+//         // Wait for VBlank to avoid tearing
+//         //while (*(volatile u16*)0x04000006 >= 160); // Wait until VDraw ends
+//         //while (*(volatile u16*)0x04000006 < 160);  // Wait until VBlank ends
 
-        // Toggle display page
-        if (REG_DISPCNT & 0x0010)
-        {
-            REG_DISPCNT &= ~(0x0010); // Show front buffer (0x06000000)
-            vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
-        }
-        else
-        {
-            REG_DISPCNT |= 0x0010;  // Show back buffer (0x0600A000)
-            vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
-        }
-    }
+//         // Toggle display page
+//         if (REG_DISPCNT & 0x0010)
+//         {
+//             REG_DISPCNT &= ~(0x0010); // Show front buffer (0x06000000)
+//             vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
+//         }
+//         else
+//         {
+//             REG_DISPCNT |= 0x0010;  // Show back buffer (0x0600A000)
+//             vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
+//         }
+//     }
 
-};
+// };
 
 
 uint32_t getKeyState(uint16_t key_code)
@@ -157,8 +157,8 @@ int main(void)
     irqEnable(IRQ_VBLANK);
     SetMode( MODE_5 | BG2_ON );		// screen mode & background to display
 
-    ADVF_Context ctx;
-    ctx.setViewPort(160,128);
+    //ADVF_Context ctx;
+    //ctx.setViewPort(160,128);
 
     while (true)
     {
@@ -171,29 +171,29 @@ int main(void)
 
 
 
-        ctx.clear();
+        // ctx.clear();
 
-        ctx.setVertexPointer(3,0,(void*)ballpos);
-        ctx.setColorPointer(0, (uint16_t*)ballcol);
-        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
-
-
-
-        ctx.setVertexPointer(3,0,(void*)blobbluepos);
-        ctx.setColorPointer(0, (uint16_t*)blobbluecol);
-        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
-
-
-        ctx.setVertexPointer(3,0,(void*)blobredpos);
-        ctx.setColorPointer(0, (uint16_t*)blobredcol);
-        ctx.getVertexFunction().camPos = {2.3_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
+        // ctx.setVertexPointer(3,0,(void*)ballpos);
+        // ctx.setColorPointer(0, (uint16_t*)ballcol);
+        // ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
 
 
 
-        ctx.present();
+        // ctx.setVertexPointer(3,0,(void*)blobbluepos);
+        // ctx.setColorPointer(0, (uint16_t*)blobbluecol);
+        // ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
+
+
+        // ctx.setVertexPointer(3,0,(void*)blobredpos);
+        // ctx.setColorPointer(0, (uint16_t*)blobredcol);
+        // ctx.getVertexFunction().camPos = {2.3_fx,0.0_fx,-2.0_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
+
+
+
+        // ctx.present();
 
 
 

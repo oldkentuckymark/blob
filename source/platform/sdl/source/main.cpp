@@ -9,11 +9,17 @@
 #include "meshes.hpp"
 
 
+/////splitinto headers and souirces
+/// make SDL_Context/GBA_Context same type in sources
+/// renderer.hpp creates or stores Dervied context marked as final
+
+
 class FFT
 {
 public:
     auto operator()(ffm::vec3& in) -> void
     {
+
         using namespace ffm;
         // Precompute sines and cosines
         fixed32 const cx = cos(rotation.x);
@@ -43,6 +49,8 @@ public:
         rz.y = ry.x * sz + ry.y * cz;
         rz.z = ry.z;
 
+
+
         in = rz;
 
         in = in - camPos;
@@ -65,24 +73,24 @@ public:
         SDL_SetRenderScale(ren,6.0f,6.0f);
     }
 
-    ~SDL_Context()
+    virtual ~SDL_Context() override
     {
 
     }
 
-    void clear() final
+    virtual void clear()
     {
         SDL_SetRenderDrawColor(ren,0,0,0,255);
         SDL_RenderClear(ren);
     }
 
-    void present()
+    virtual void present()
     {
 
         SDL_RenderPresent(ren);
     }
 
-    void plot(int16_t x, int16_t y, uint16_t c)
+    virtual void plot(int16_t x, int16_t y, uint16_t c)
     {
         auto cc = ffr::Convert555to888(c);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
@@ -180,23 +188,31 @@ auto main() -> int
 
         ctx.clear();
 
-        ctx.setVertexPointer(3,0,(void*)ballpos);
-        ctx.setColorPointer(0, (uint16_t*)ballcol);
+        // ctx.setVertexPointer(3,0,(void*)ballpos);
+        // ctx.setColorPointer(0, (uint16_t*)ballcol);
+        // ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
+
+
+
+        // ctx.setVertexPointer(3,0,(void*)blobbluepos);
+        // ctx.setColorPointer(0, (uint16_t*)blobbluecol);
+        // ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
+
+
+        // ctx.setVertexPointer(3,0,(void*)blobredpos);
+        // ctx.setColorPointer(0, (uint16_t*)blobredcol);
+        // ctx.getVertexFunction().camPos = {2.3_fx,0.0_fx,-2.0_fx};
+        // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
+
+        ctx.setVertexPointer(3,0,(void*)BALL_VERTS.data());
+        ctx.setColorPointer(0,(uint16_t*)BALL_COLS.data());
         ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(ballpos)/sizeof(ffm::vec3));
+        ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{0.0001_fx,0.0001_fx,0.0001_fx};
+        ctx.drawArray(ffr::DrawType::Triangles,0,BALL_VERTS_SIZE / 3);
 
 
-
-        ctx.setVertexPointer(3,0,(void*)blobbluepos);
-        ctx.setColorPointer(0, (uint16_t*)blobbluecol);
-        ctx.getVertexFunction().camPos = {-2.0_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
-
-
-        ctx.setVertexPointer(3,0,(void*)blobredpos);
-        ctx.setColorPointer(0, (uint16_t*)blobredcol);
-        ctx.getVertexFunction().camPos = {2.3_fx,0.0_fx,-2.0_fx};
-        ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));
 
         ctx.present();
 

@@ -35,9 +35,11 @@ enum class DrawType : uint32_t
 };
 
 
-template<class VERTEX_FUNCTION, std::size_t MAX_VERTS = 128>
+template<class VERTEX_FUNCTION>
 class Context
 {
+    static constexpr std::size_t MAX_VERTS{128};
+
 public:
     Context() = default;
     virtual ~Context() = default;
@@ -47,8 +49,7 @@ public:
     Context(Context&&) = delete;
     auto operator = (Context&&) = delete;
 
-
-    virtual auto plot(int16_t x, int16_t y, uint16_t color) -> void = 0;
+    virtual auto plot(int16_t x, int16_t y, uint16_t color) -> void {}
 
     virtual auto line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) -> void
     {
@@ -105,6 +106,7 @@ public:
     {
         line(x0, y0, x1, y0, color);
     }
+
     virtual auto lineVertical(int16_t x0, int16_t y0, int16_t y1, uint16_t color) -> void
     {
         line(x0, y0, x0, y1, color);
@@ -259,9 +261,8 @@ public:
         }
     }
 
-
-
     virtual auto clear() -> void {}
+
     virtual auto present() -> void {}
 
     auto setVertexPointer(uint32_t size, uint32_t stride, void* vp) -> void
@@ -288,6 +289,8 @@ public:
 
     auto drawArray(DrawType dt, uint32_t first, uint32_t count) -> void
     {
+
+        //fix color stride?
         current_draw_type_ = dt;
         working_vertex_buffer_size_ = 0;
         working_color_buffer_size_ = 0;
