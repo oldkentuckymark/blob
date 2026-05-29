@@ -18,7 +18,7 @@ set(BLOB_HEADERS
     source/ffp.hpp
     source/meshes.hpp
     source/player.hpp
-    source/strtonum.hpp
+
     source/csv.hpp
 )
 

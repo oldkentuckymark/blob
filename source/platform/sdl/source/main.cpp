@@ -210,7 +210,7 @@ auto main() -> int
         ctx.setColorPointer(0,(uint16_t*)BALL_COLS.data());
         ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
         ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{0.0001_fx,0.0001_fx,0.0001_fx};
-        ctx.drawArray(ffr::DrawType::Triangles,0,BALL_VERTS_SIZE / 3);
+        ctx.drawArray(ffr::DrawType::Triangles,0,BALL_VERTS_SIZE);
 
 
 

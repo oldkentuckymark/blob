@@ -69,8 +69,8 @@ consteval auto make_array(std::vector<T> vec) -> std::array<T, N>
 }
 
 
-constexpr auto BALL_VERTS_SIZE = createMesh(MESHES::BALL).first.size();
-constexpr static auto BALL_VERTS = make_array<ffm::fixed32,BALL_VERTS_SIZE>(createMesh(MESHES::BALL).first);
+constexpr auto BALL_VERTS_SIZE = createMesh(MESHES::BALL).first.size() / 3;
+constexpr static auto BALL_VERTS = make_array<ffm::fixed32,BALL_VERTS_SIZE * 3>(createMesh(MESHES::BALL).first);
 
 constexpr auto BALL_COLS_SIZE = createMesh(MESHES::BALL).second.size();
 constexpr static auto BALL_COLS = make_array<uint16_t,BALL_COLS_SIZE>(createMesh(MESHES::BALL).second);

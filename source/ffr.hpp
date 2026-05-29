@@ -297,7 +297,7 @@ public:
 
         if(vertex_size_ == 2)
         {
-            for(uint32_t i = first; i < first+count; ++i)
+            for(uint32_t i = first; i < (first+count); ++i)
             {
                 working_vertex_buffer_[working_vertex_buffer_size_] =
                 {
@@ -310,39 +310,20 @@ public:
         }
         else if(vertex_size_ == 3)
         {
-            for(uint32_t i = first; i < first+count; ++i)
+            for(uint32_t i = first; i < (first+count); ++i)
             {
                 working_vertex_buffer_[working_vertex_buffer_size_] = reinterpret_cast<vec3*>(vertex_pointer_)[i];
                 ++working_vertex_buffer_size_;
             }
         }
 
-        if(current_draw_type_ == DrawType::Points)
+        //gather colors into working buffer
+        for(uint16_t i = first; i < (first + count); ++i)
         {
-            for(uint16_t i = first; i < (first + count); ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                ++working_color_buffer_size_;
-            }
+            working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
+            ++working_color_buffer_size_;
         }
-        else if(current_draw_type_ == DrawType::Lines)
-        {
-            for(uint16_t i = first; i < (first + count) / 2; ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                working_color_buffer_size_ ++;
-            }
 
-        }
-        else if(current_draw_type_ == DrawType::Triangles)
-        {
-            for(uint16_t i = first; i < (first + count) / 3; ++i)
-            {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                working_color_buffer_size_ ++;
-            }
-
-        }
 
         //vertex_pipeline_();
 
@@ -366,9 +347,9 @@ public:
 
                 if(clip_point_screen_space(cvs))
                 {
-                    plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), UINT16_MAX);
+                    plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), ccs);
                 }
-                ++col;
+                col = col + 1;
             }
             else if(current_draw_type_ == DrawType::Lines)
             {
@@ -380,10 +361,10 @@ public:
                 if(clip_line_screen_space(p0, p1))
                 {
                     line(static_cast<int16_t>(p0.x), static_cast<int16_t>(p0.y),
-                         static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), UINT16_MAX);
+                         static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), ccs);
                 }
-                ++i;
-                ++col;
+                i = i + 1;;
+                col = col + 2;
             }
             else if(current_draw_type_ == DrawType::Triangles)
             {
@@ -412,7 +393,7 @@ public:
 
 
                 i = i + 2;
-                ++col;
+                col = col + 3;
             }
         }
 
