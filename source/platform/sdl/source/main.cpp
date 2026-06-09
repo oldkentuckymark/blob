@@ -201,7 +201,7 @@ auto main() -> int
         // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobbluepos)/sizeof(ffm::vec3));
 
 
-        // ctx.setVertexPointer(3,0,(void*)blobredpos);
+        // ctx.setVertexPointer(3,0,(rvoid*)blobredpos);
         // ctx.setColorPointer(0, (uint16_t*)blobredcol);
         // ctx.getVertexFunction().camPos = {2.3_fx,0.0_fx,-2.0_fx};
         // ctx.drawArray(ffr::DrawType::Triangles, 0, sizeof(blobredpos)/sizeof(ffm::vec3));

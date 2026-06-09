@@ -31,7 +31,8 @@ enum class DrawType : uint32_t
 {
     Points = 1,
     Lines = 2,
-    Triangles = 3
+    Triangles = 3,
+    TrianglesWireFrame = 4
 };
 
 
@@ -386,6 +387,40 @@ public:
                         triangle(static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y),
                             static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y),
                             static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y), ccs);
+                    }
+                }
+
+
+
+
+                i = i + 2;
+                col = col + 3;
+            }
+            else if(current_draw_type_ == DrawType::TrianglesWireFrame)
+            {
+                vec3& v0{working_vertex_buffer_[i]};
+                vec3& v1{working_vertex_buffer_[i+1]};
+                vec3& v2{working_vertex_buffer_[i+2]};
+                project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
+
+                if(is_front_facing(v0, v1, v2))
+                {
+                    to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
+
+                    std::array<vec3, 6> arr;
+                    auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
+
+
+                    for(auto i = 0ul; i < k; i = i + 3)
+                    {
+                        line( static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y),
+                            static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y), ccs );
+
+                        line( static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y),
+                             static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y), ccs );
+
+                        line( static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y),
+                            static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y), ccs);
                     }
                 }
 
