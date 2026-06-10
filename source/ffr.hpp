@@ -10,22 +10,6 @@ namespace ffr
 
 using namespace ffm;
 
-constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b) -> uint32_t
-{
-    return (((r >> 3) & 31) |
-            (((g >> 3) & 31) << 5) |
-            (((b >> 3) & 31) << 10) );
-
-}
-
-constexpr auto Convert555to888(uint32_t color) -> std::array<uint8_t, 4>
-{
-    uint8_t const red = (color & 31) << 3;
-    uint8_t const green = ((color >> 5) & 31) << 3;
-    uint8_t const blue = ((color >> 10) & 31) << 3;
-    uint8_t const alpha = 255;
-    return {red,green,blue,alpha};
-}
 
 enum class DrawType : uint32_t
 {
@@ -441,11 +425,11 @@ public:
 
 private:
 
-    int clipAndTriangulateTriangle(
+    auto clipAndTriangulateTriangle(
         const vec3& A,
         const vec3& B,
         const vec3& C,
-        std::array<vec3,6>& outVerts)
+        std::array<vec3,6>& outVerts) -> int
     {
         const auto left   = 0.0_fx;
         const auto right  = viewport_width_fx_;

@@ -63,43 +63,44 @@ public:
 };
 
 
-class SDL_Context final : public ffr::Context<FFT>
+class Context final : public ffr::Context<FFT>
 {
 public:
-    SDL_Context()
+    Context()
     {
         SDL_Init(SDL_INIT_VIDEO);
         SDL_CreateWindowAndRenderer("blob",240*6,160*6,0,&win,&ren);
         SDL_SetRenderScale(ren,6.0f,6.0f);
     }
 
-    virtual ~SDL_Context() override
+    ~Context() override
     {
-
+        SDL_DestroyRenderer(ren);
+        SDL_DestroyWindow(win);
     }
 
-    virtual void clear()
+    auto clear() -> void override
     {
         SDL_SetRenderDrawColor(ren,0,0,0,255);
         SDL_RenderClear(ren);
     }
 
-    virtual void present()
+    auto present() -> void override
     {
 
         SDL_RenderPresent(ren);
     }
 
-    virtual void plot(int16_t x, int16_t y, uint16_t c)
+    auto plot(int16_t x, int16_t y, uint16_t c) -> void override
     {
-        auto cc = ffr::Convert555to888(c);
+        auto cc = util::Convert555to888(c);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
         SDL_RenderPoint(ren,x,y);
     }
 
 private:
-    SDL_Window* win;
-    SDL_Renderer* ren;
+    SDL_Window* win{nullptr};
+    SDL_Renderer* ren{nullptr};
 
 
 };
@@ -108,7 +109,7 @@ auto main() -> int
 {
 
 
-    SDL_Context ctx;
+    Context ctx;
     ctx.setViewPort(240,160);
 
 

@@ -2,19 +2,61 @@
 
 #include <cstdint>
 #include <array>
+#include <cmath>
 #include "util.hpp"
 
 namespace ffm
 {
+
+class fixed16
+{
+public:
+    static constexpr int32_t const FIX_SHIFT = 8;
+    static constexpr int32_t const FIX_SCALE = 256;
+    static constexpr double const FIX_SCALEF = 256.0;
+
+    int16_t data{0};
+
+    constexpr fixed16() = default;
+
+    constexpr explicit fixed16(int8_t const &that)
+        : data(that << FIX_SHIFT)
+    {}
+
+    constexpr explicit fixed16(double const &that)
+        : data(static_cast<int16_t>(that * FIX_SCALEF))
+    {}
+
+    constexpr auto operator=(int8_t const that) -> fixed16 &
+    {
+        data = that << FIX_SHIFT;
+        return (*this);
+    }
+
+    constexpr auto operator=(double const that) -> fixed16 &
+    {
+        data = static_cast<int16_t>(that * FIX_SCALEF);
+        return (*this);
+    }
+
+
+    constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
+
+    consteval explicit operator double() const { return data / FIX_SCALEF; }
+
+
+
+
+};
 
 class fixed32
 {
 public:
     static constexpr int32_t const FIX_SHIFT = 16;
     static constexpr int32_t const FIX_SCALE = 65536;
-    static constexpr double const FIX_SCALEF = 65536.0f;
+    static constexpr double const FIX_SCALEF = 65536.0;
 
-    int32_t data = 0;
+    int32_t data{0};
 
     constexpr fixed32() = default;
 
@@ -25,11 +67,6 @@ public:
     constexpr explicit fixed32(double const &that)
         : data(static_cast<int32_t>(that * FIX_SCALEF))
     {}
-
-    // constexpr operator bool () const
-    // {
-    //     return !(data == 0);
-    // }
 
     constexpr auto operator=(int16_t const that) -> fixed32 &
     {
@@ -43,14 +80,16 @@ public:
         return (*this);
     }
 
-    // constexpr explicit operator int32_t () const
-    // {
-    //     return data >> FIX_SHIFT;
-    // }
-
     constexpr explicit operator int16_t() const { return data >> FIX_SHIFT; }
 
-    //consteval explicit operator double() const { return data / FIX_SCALEF; }
+    consteval explicit operator double() const { return data / FIX_SCALEF; }
+
+    constexpr explicit operator fixed16() const
+    {
+        fixed16 r;
+        r.data = static_cast<int16_t>((data + 128) >> 8);
+        return r;
+    }
 
     constexpr auto operator+(fixed32 const that) const -> fixed32
     {
@@ -132,11 +171,11 @@ namespace ffm
 
 
 
-static constexpr std::uint32_t GAMDEG_IN_CIRCLE = 512; //360 = degrees, 21600 = minutes
-static constexpr fixed32 TAU = 6.28318530_fx;
-static constexpr double TAUF = 6.28318530f;
-static constexpr double RAD_TO_GAMDEGF = GAMDEG_IN_CIRCLE / TAUF;
-static constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
+constexpr std::uint32_t GAMDEG_IN_CIRCLE = 512; //360 = degrees, 21600 = minutes
+constexpr fixed32 TAU = 6.28318530_fx;
+constexpr double TAUF = 6.28318530;
+constexpr double RAD_TO_GAMDEGF = GAMDEG_IN_CIRCLE / TAUF;
+constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
 
 [[nodiscard]] constexpr auto factorial(auto const n) -> decltype(n)
 {
@@ -208,20 +247,20 @@ consteval auto taylorCos(double const x) -> double
 
 consteval auto makeCosTable() -> LUT
 {
-    const uint16_t quadrantSize = GAMDEG_IN_CIRCLE/4;
+    const std::size_t quadrantSize = GAMDEG_IN_CIRCLE/4;
     LUT r{};
 
-    uint16_t k = (quadrantSize*2);
-    for (uint16_t i = 0; i <= quadrantSize; ++i)
+    std::size_t k = (quadrantSize*2);
+    for (std::size_t i = 0; i <= quadrantSize; ++i)
     {
-        double x = (TAUF / GAMDEG_IN_CIRCLE) * i;
+        double const x = (TAUF / GAMDEG_IN_CIRCLE) * i;
         r[i] = taylorCos(x);
         r[k] = -r[i];
         --k;
     }
 
     k = quadrantSize*2;
-    for(uint16_t  i = 0; i < quadrantSize*2; ++i)
+    for(std::size_t  i = 0; i < quadrantSize*2; ++i)
     {
         r[k] = -r[i];
         ++k;
@@ -235,9 +274,19 @@ consteval auto makeCosTable() -> LUT
     return r;
 }
 
-consteval auto taylorSqrt(double const x) -> double
+consteval auto makeInvsqrtTable() -> LUT
 {
-    return 1.0f;
+    LUT r{};
+
+    r[0] = 0.0_fx;
+    for(auto i = 1ul; i < r.size(); ++i)
+    {
+        double const x = 1.0 / std::sqrt(i);
+        fixed32 const y{x};
+        r[i] = y;
+    }
+
+    return r;
 }
 
 
@@ -278,14 +327,30 @@ consteval auto taylorSqrt(double const x) -> double
     return cos(n) / sin(n);
 }
 
-[[nodiscard]] constexpr auto abs(auto n) -> decltype(n)
+[[nodiscard]] constexpr auto abs(auto const n) -> decltype(n)
 {
     return (n > 0) ? n : -n;
 }
 
-[[nodiscard]] constexpr auto abs(fixed32 n) -> fixed32
+[[nodiscard]] constexpr auto abs(fixed32 const n) -> fixed32
 {
     return (n > 0.0_fx) ? n : -n;
+}
+
+[[nodiscard]] constexpr auto sqrt(fixed32 const n) -> fixed32
+{
+    static constexpr LUT INVSQRTTABLE = makeInvsqrtTable();
+
+    if consteval
+    {
+        double const d = std::sqrt(static_cast<double>(n));
+
+        return fixed32{d};
+    }
+    else
+    {
+        return INVSQRTTABLE[static_cast<int16_t>(n)];
+    }
 }
 
 class vec2
