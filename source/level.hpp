@@ -54,7 +54,7 @@ static constexpr uint16_t k = 0b000'00'000'00000000;//3 bit for collision type(f
 
 consteval auto cell(uint8_t collision, uint8_t height, uint8_t type, uint8_t topcol, uint8_t bottomcol) -> uint8_t
 {
-
+    return 0;
 }
 
 public:

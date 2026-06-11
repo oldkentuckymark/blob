@@ -3,7 +3,7 @@
 #include "ffm.hpp"
 #include "csv.hpp"
 #include <utility>
-#include <span>
+#include "level.hpp"
 
 enum class MESHES : unsigned int
 {
@@ -55,25 +55,28 @@ consteval auto createMesh(MESHES const m) -> std::pair<std::vector<ffm::fixed32>
 }
 
 
-
-
-template<class T, std::size_t N>
-consteval auto make_array(std::vector<T> vec) -> std::array<T, N>
+consteval auto createCellVerts(Cell const & cell) -> std::vector<ffm::fixed32>
 {
-    std::array<T, N> arr{};
-    for (std::size_t i = 0; i < N; ++i)
+    ffm::vec3 flatpos[4] =
     {
-        arr[i] = vec[i];
-    }
-    return arr;
+        {0.0_fx,0.0_fx,0.0_fx},
+        {0.0_fx,0.0_fx,0.0_fx},
+        {0.0_fx,0.0_fx,0.0_fx},
+        {0.0_fx,0.0_fx,0.0_fx}
+    };
+
+    return {};
+
 }
 
 
+
+
 constexpr auto BALL_VERTS_SIZE = createMesh(MESHES::BALL).first.size() / 3;
-constexpr static auto BALL_VERTS = make_array<ffm::fixed32,BALL_VERTS_SIZE * 3>(createMesh(MESHES::BALL).first);
+constexpr static auto BALL_VERTS = util::make_array<ffm::fixed32,BALL_VERTS_SIZE * 3>(createMesh(MESHES::BALL).first);
 
 constexpr auto BALL_COLS_SIZE = createMesh(MESHES::BALL).second.size();
-constexpr static auto BALL_COLS = make_array<uint16_t,BALL_COLS_SIZE>(createMesh(MESHES::BALL).second);
+constexpr static auto BALL_COLS = util::make_array<uint16_t,BALL_COLS_SIZE>(createMesh(MESHES::BALL).second);
 
 
 

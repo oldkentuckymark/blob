@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <array>
+#include <vector>
 
 namespace util
 {
@@ -49,6 +50,16 @@ enum class Color : uint16_t
 
 };
 
+template<class T, std::size_t N>
+consteval auto make_array(std::vector<T> vec) -> std::array<T, N>
+{
+    std::array<T, N> arr{};
+    for (std::size_t i = 0; i < N; ++i)
+    {
+        arr[i] = vec[i];
+    }
+    return arr;
+}
 
 
 }
