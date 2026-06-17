@@ -5,31 +5,140 @@
 #include <utility>
 #include "level.hpp"
 
-enum class MESHES : unsigned int
+enum class MESHES : uint16_t
 {
-    BLOB_BLUE = 0,
-    BLOB_RED,
-    BALL
+    SHIP = 0,
+    FLAT,
+    BACKHIGH,
+    BACKLOW,
+    BACKMID,
+    BOTTOMHIGH,
+    BOTTOMLOW,
+    BOTTOMMID,
+    FRONTHIGH,
+    FRONTLOW,
+    FRONTMID,
+    LEFTHIGH,
+    LEFTLOW,
+    LEFTMID,
+    RIGHTHIGH,
+    RIGHTLOW,
+    RIGHTMID,
+    TOPHIGH,
+    TOPLOW,
+    TOPMID,
+    TUNNELHIGH,
+    TUNNELLOW,
+    TUNNELMID
+
 };
 
 
 
 consteval auto createMesh(MESHES const m) -> std::pair<std::vector<ffm::fixed32>,std::vector<uint16_t>> const
 {
-    constexpr char blobbluecsv[] =
+    constexpr char shipcsv[] =
     {
-        #embed "../data/m.csv" suffix(, 0)
+        #embed "../data/ship.csv" suffix(, 0)
     };
+    constexpr char shipcsv[] =
+    {
+        #embed "../data/ship.csv" suffix(, 0)
+    };
+    constexpr char shipcsv[] =
+    {
+        #embed "../data/ship.csv" suffix(, 0)
+    };
+    constexpr char shipcsv[] =
+    {
+        #embed "../data/ship.csv" suffix(, 0)
+    };
+    constexpr char shipcsv[] =
+    {
+        #embed "../data/ship.csv" suffix(, 0)
+    };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
+    constexpr char shipcsv[] =
+        {
+#embed "../data/ship.csv" suffix(, 0)
+        };
 
-    constexpr char blobredcsv[] =
-    {
-        #embed "../data/m.csv" suffix(, 0)
-    };
 
-    constexpr char ballcsv[] =
-    {
-        #embed "../data/m.csv" suffix(, 0)
-    };
+
+
+
+
+
+
+
+
 
     std::vector<double> dv =  parse_csv(blobbluecsv);
 
@@ -55,27 +164,14 @@ consteval auto createMesh(MESHES const m) -> std::pair<std::vector<ffm::fixed32>
 }
 
 
-consteval auto createCellVerts(Cell const & cell) -> std::vector<ffm::fixed32>
-{
-    ffm::vec3 flatpos[4] =
-    {
-        {0.0_fx,0.0_fx,0.0_fx},
-        {0.0_fx,0.0_fx,0.0_fx},
-        {0.0_fx,0.0_fx,0.0_fx},
-        {0.0_fx,0.0_fx,0.0_fx}
-    };
-
-    return {};
-
-}
 
 
 
 
-constexpr auto BALL_VERTS_SIZE = createMesh(MESHES::BALL).first.size() / 3;
+constexpr static auto BALL_VERTS_SIZE = createMesh(MESHES::BALL).first.size() / 3;
 constexpr static auto BALL_VERTS = util::make_array<ffm::fixed32,BALL_VERTS_SIZE * 3>(createMesh(MESHES::BALL).first);
 
-constexpr auto BALL_COLS_SIZE = createMesh(MESHES::BALL).second.size();
+constexpr static auto BALL_COLS_SIZE = createMesh(MESHES::BALL).second.size();
 constexpr static auto BALL_COLS = util::make_array<uint16_t,BALL_COLS_SIZE>(createMesh(MESHES::BALL).second);
 
 
