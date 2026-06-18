@@ -38,96 +38,96 @@ enum class MESHES : uint16_t
 consteval auto createMesh(MESHES const m) -> std::pair<std::vector<ffm::fixed32>,std::vector<uint16_t>> const
 {
     constexpr char shipcsv[] =
-    {
-        #embed "../data/ship.csv" suffix(, 0)
-    };
-    constexpr char shipcsv[] =
-    {
-        #embed "../data/ship.csv" suffix(, 0)
-    };
-    constexpr char shipcsv[] =
-    {
-        #embed "../data/ship.csv" suffix(, 0)
-    };
-    constexpr char shipcsv[] =
-    {
-        #embed "../data/ship.csv" suffix(, 0)
-    };
-    constexpr char shipcsv[] =
-    {
-        #embed "../data/ship.csv" suffix(, 0)
-    };
-    constexpr char shipcsv[] =
         {
 #embed "../data/ship.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char flatcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/flat.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char backhighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/backhigh.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char backlowcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/backlow.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char backmidcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/backmid.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char bottomhighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/bottomhigh.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char bottomlowcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/bottomlow.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char bottommidcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/bottommid.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char fronthighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/fronthigh.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char frontlowcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/frontlow.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char frontmidcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/frontmid.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char lefthighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/lefthigh.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char leftlowcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/leftlow.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char leftmidcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/leftmid.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char righthighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/righthigh.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char rightlowcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/rightlow.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char rightmidcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/rightmid.csv" suffix(, 0)
         };
-    constexpr char shipcsv[] =
+    constexpr char tophighcsv[] =
         {
-#embed "../data/ship.csv" suffix(, 0)
+#embed "../data/tophigh.csv" suffix(, 0)
+        };
+    constexpr char toplowcsv[] =
+        {
+#embed "../data/toplow.csv" suffix(, 0)
+        };
+    constexpr char topmidcsv[] =
+        {
+#embed "../data/topmid.csv" suffix(, 0)
+        };
+    constexpr char tunnelhighcsv[] =
+        {
+#embed "../data/tunnelhigh.csv" suffix(, 0)
+        };
+    constexpr char tunnellowcsv[] =
+        {
+#embed "../data/tunnellow.csv" suffix(, 0)
+        };
+    constexpr char tunnelmidcsv[] =
+        {
+#embed "../data/tunnelmid.csv" suffix(, 0)
         };
 
 
