@@ -36,7 +36,7 @@ set(BLOB_SDL_SOURCES
 
 set(BLOB_GBA_SOURCES
     ${BLOB_SOURCES}
-    source/platform/gba/source/main.cpp
+    source/platform/gba/source/main.iwram.cpp
 )
 
 add_executable(blob-sdl
