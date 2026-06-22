@@ -25,7 +25,7 @@ constexpr auto Convert555to888(uint32_t color) -> std::array<uint8_t, 4>
 }
 
 
-enum class Color : uint16_t
+enum class ColorPalette : uint16_t
 {
     Black = Convert888to555(0x00,0x00,0x00),
 
