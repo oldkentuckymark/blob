@@ -28,11 +28,18 @@ public:
 
     enum class Collision : uint8_t
     {
-        Flat = 0,
+        Block = 0,
         TunnelNoFloor,
         TunnelFloor,
-        TunelFloorCeil
+
     };
+
+    Cell(Type const t, Height const h, Collision const c)
+    {
+
+    }
+
+    ~Cell() = default;
 
     Type type;
     Height height;
@@ -47,12 +54,20 @@ private:
 class Level
 {
 
-
-
 public:
+    Level()
+    {
 
+    }
 
 
 private:
-    std::array<Cell, 5> cells;
+    int16_t oxygen;
+    int16_t gravity;
+    uint16_t front_color_, back_color_;
+    uint16_t left_color_, right_color_;
+    uint16_t top_color_, bottom_color;
+
+
+    Cell cells[7][1024];
 };
