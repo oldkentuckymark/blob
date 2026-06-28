@@ -8,6 +8,12 @@
 #include <SDL3/SDL_events.h>
 #include "meshes.hpp"
 
+#ifdef GBA
+#define IWRAM_CODE __attribute__((section(".iwram"), long_call))
+#else
+#define IWRAM_CODE
+#endif
+
 
 /////splitinto headers and souirces
 /// make SDL_Context/GBA_Context same type in sources
@@ -17,6 +23,7 @@
 class FFT
 {
 public:
+
     auto operator()(ffm::vec3& in) -> void
     {
 

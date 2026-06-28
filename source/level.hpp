@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include "ffr.hpp"
-#include "util.hpp
+#include "util.hpp"
 
 
 class Cell
