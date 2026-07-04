@@ -62,7 +62,7 @@ target_include_directories(blob-sdl PUBLIC /opt/devkitpro/libgba/include)
 
 add_custom_target(data SOURCES ${BLOB_DATA_FILES})
 
-add_custom_target(blob-gba ALL
+add_custom_target(blob-gba
     COMMAND make -C ${CMAKE_CURRENT_SOURCE_DIR}/source/platform/gba -f Makefile
     SOURCES ${BLOB_GBA_SOURCES}
     COMMENT "GBA Build"
