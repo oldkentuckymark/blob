@@ -48,29 +48,34 @@ public:
     ~Cell() = default;
 
 
-    constexpr auto packTileAttributes(Type type, Collision collision, Height height) -> uint8_t
+    // Bit layout (MSB -> LSB):
+    // [ Collision:3 | Type:3 | Height:2 ]
+
+    constexpr static uint8_t packTileAttributes(Collision collision, Type type, Height height)
     {
         return static_cast<uint8_t>(
-            (static_cast<uint8_t>(type)       << 5) |
-            (static_cast<uint8_t>(collision)  << 2) |
+            (static_cast<uint8_t>(collision) << 5) |
+            (static_cast<uint8_t>(type)      << 2) |
             static_cast<uint8_t>(height)
             );
     }
 
-    constexpr auto unpackTileAttributes(uint8_t packed, Type& outType, Collision& outCollision, Height& outHeight) -> void
+    constexpr static void unpackTileAttributes(uint8_t packed, Collision& outCollision, Type& outType, Height& outHeight)
     {
-        outType      = static_cast<Type>((packed >> 5) & 0x7);   // 3 bits
-        outCollision = static_cast<Collision>((packed >> 2) & 0x7); // 3 bits
-        outHeight    = static_cast<Height>(packed & 0x3);         // 2 bits
+        outCollision = static_cast<Collision>((packed >> 5) & 0x7); // 3 bits
+        outType      = static_cast<Type>((packed >> 2) & 0x7);      // 3 bits
+        outHeight    = static_cast<Height>(packed & 0x3);            // 2 bits
     }
 
 
+    Collision collision;
     Type type;
     Height height;
-    Collision collision;
 
 
 private:
+
+
 
 };
 
@@ -96,4 +101,34 @@ private:
 
 
     Cell cells[7][512];
+
+
+    consteval std::vector<uint8_t> ParseCsvTiles(const char* csv)
+    {
+        auto isSeparator = [](char c)
+        {
+            return c == ',' || c == '\r' || c == '\n' || c == ' ' || c == '\t';
+        };
+
+        std::vector<uint8_t> packedTiles;
+
+        const char* p = csv;
+        while (isSeparator(*p)) ++p;
+        while (*p != '\0')
+        {
+            Cell::Collision collision = static_cast<Cell::Collision>(*p++ - '0');
+            Cell::Type      type      = static_cast<Cell::Type>(*p++ - '0');
+            Cell::Height    height    = static_cast<Cell::Height>(*p++ - '0');
+
+            packedTiles.push_back(Cell::packTileAttributes(collision, type, height));
+
+            while (isSeparator(*p))
+                ++p;
+        }
+
+        return packedTiles;
+    }
+
+
+
 };
