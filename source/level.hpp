@@ -18,8 +18,7 @@ public:
         Tunnel,
         TunnelPlane,
         TunnelBlock,
-        Ramp,
-        End
+        Ramp
     };
 
     enum class Type : uint8_t
@@ -30,6 +29,7 @@ public:
         Sticky,
         Slippery,
         Kill,
+        End
     };
 
     enum class Height : uint8_t
@@ -73,39 +73,11 @@ public:
     }
 
 
-    consteval static auto createLevel(uint8_t const lvl) -> std::vector<Cell>
-    {
-        constexpr char level0csv[] =
-            {
-#embed "../data/level.txt" suffix(, 0)
-            };
-        constexpr char level1csv[] =
-            {
-#embed "../data/level.txt" suffix(, 0)
-            };
 
-
-        char const* csvp{nullptr};
-        switch(lvl)
-        {
-        case 0:
-            csvp = level0csv;
-            break;
-        case 1:
-            csvp = level1csv;
-            break;
-        }
-
-
-
-        auto data = parseCsvTiles(csvp);
-
-        return data;
-
-
-    }
 
     auto getLength() const -> int16_t { return length_; }
+
+    auto getOxygen() const -> int16_t { return oxygen_; }
 
 private:
     int16_t length_;
@@ -119,50 +91,76 @@ private:
 
 
 
-    Cell cells[7][512];
+    Cell const * cells{nullptr};
 
 
-    consteval static std::vector<Cell> parseCsvTiles(const char* csv)
-    {
-        auto isSeparator = [](char c)
-        {
-            return c == ',' || c == '\r' || c == '\n' || c == ' ' || c == '\t';
-        };
 
-        std::vector<Cell> tiles;
-
-        const char* p = csv;
-        while (isSeparator(*p)) ++p;
-        while (*p != '\0')
-        {
-            Cell::Collision collision = static_cast<Cell::Collision>(*p++ - '0');
-            Cell::Type      type      = static_cast<Cell::Type>(*p++ - '0');
-            Cell::Height    height    = static_cast<Cell::Height>(*p++ - '0');
-
-            tiles.emplace_back(collision, type, height);
-
-            while (isSeparator(*p))
-            {
-                ++p;
-            }
-        }
-
-        return tiles;
-    }
 
 };
 
 
-constexpr static auto LEVEL0 = util::make_array<Cell,Level::createLevel(0).size()>(Level::createLevel(0));
-constexpr static auto LEVEL1 = util::make_array<Cell,Level::createLevel(0).size()>(Level::createLevel(1));
+consteval static auto parseCsvTiles(const char* csv) -> std::vector<Cell>
+{
+    auto isSeparator = [](char c)
+    {
+        return c == ',' || c == '\r' || c == '\n' || c == ' ' || c == '\t';
+    };
+
+    std::vector<Cell> tiles;
+
+    const char* p = csv;
+    while (isSeparator(*p)) ++p;
+    while (*p != '\0')
+    {
+        Cell::Collision collision = static_cast<Cell::Collision>(*p++ - '0');
+        Cell::Type      type      = static_cast<Cell::Type>(*p++ - '0');
+        Cell::Height    height    = static_cast<Cell::Height>(*p++ - '0');
+
+        tiles.emplace_back(collision, type, height);
+
+        while (isSeparator(*p))
+        {
+            ++p;
+        }
+    }
+
+    return tiles;
+}
+
+consteval static auto createLevel(uint8_t const lvl) -> std::vector<Cell>
+{
+    constexpr char level0csv[] =
+    {
+        #embed "../data/level.txt" suffix(, 0)
+    };
+    constexpr char level1csv[] =
+    {
+        #embed "../data/level.txt" suffix(, 0)
+    };
+
+
+    char const* csvp{nullptr};
+    switch(lvl)
+    {
+    case 0:
+        csvp = level0csv;
+        break;
+    case 1:
+        csvp = level1csv;
+        break;
+    }
 
 
 
+    auto data = parseCsvTiles(csvp);
+
+    return data;
 
 
+}
 
-
-
+constexpr static auto LEVEL0 = util::make_array<Cell,createLevel(0).size()>(createLevel(0));
+constexpr static auto LEVEL1 = util::make_array<Cell,createLevel(0).size()>(createLevel(1));
 
 
 
