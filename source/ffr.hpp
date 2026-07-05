@@ -258,7 +258,7 @@ public:
     }
 
     //1 uint16_t per primitve
-    auto setColorPointer(uint32_t stride, uint16_t* cp)-> void
+    auto setColorPointer(uint16_t stride, uint16_t* cp)-> void
     {
         color_stride_ = stride;
         color_pointer_ = cp;
@@ -303,10 +303,23 @@ public:
         }
 
         //gather colors into working buffer
-        for(uint16_t i = first; i < (first + count); ++i)
+        if(color_pointer_ == nullptr)
         {
-            working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-            ++working_color_buffer_size_;
+            for(uint32_t i = first; i < (first + count); ++i)
+            {
+                working_color_buffer_[working_color_buffer_size_] = color_stride_;
+                ++working_color_buffer_size_;
+            }
+        }
+        else
+        {
+            //TODO: convert all to pointer arithetic instead of indices for stride support
+
+            for(uint32_t i = first; i < (first + count); ++i)
+            {
+                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
+                ++working_color_buffer_size_;
+            }
         }
 
 
