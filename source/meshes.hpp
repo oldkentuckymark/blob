@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MESHES_HPP
+#define MESHES_HPP
 
 #include "ffm.hpp"
 #include "csv.hpp"
@@ -41,95 +42,95 @@ consteval auto createMesh(MESH const m) -> std::pair<std::vector<ffm::fixed32>,s
 {
     constexpr char shipcsv[] =
     {
-        #embed "../data/ship.csv" suffix(, 0)
+        #embed "../data/meshes/ship.csv" suffix(, 0)
     };
     constexpr char flatcsv[] =
     {
-        #embed "../data/flat.csv" suffix(, 0)
+        #embed "../data/meshes/flat.csv" suffix(, 0)
     };
     constexpr char backhighcsv[] =
     {
-        #embed "../data/backhigh.csv" suffix(, 0)
+        #embed "../data/meshes/backhigh.csv" suffix(, 0)
     };
     constexpr char backlowcsv[] =
     {
-        #embed "../data/backlow.csv" suffix(, 0)
+        #embed "../data/meshes/backlow.csv" suffix(, 0)
     };
     constexpr char backmidcsv[] =
     {
-        #embed "../data/backmid.csv" suffix(, 0)
+        #embed "../data/meshes/backmid.csv" suffix(, 0)
     };
     constexpr char bottomhighcsv[] =
     {
-        #embed "../data/bottomhigh.csv" suffix(, 0)
+        #embed "../data/meshes/bottomhigh.csv" suffix(, 0)
     };
     constexpr char bottomlowcsv[] =
     {
-        #embed "../data/bottomlow.csv" suffix(, 0)
+        #embed "../data/meshes/bottomlow.csv" suffix(, 0)
     };
     constexpr char bottommidcsv[] =
     {
-        #embed "../data/bottommid.csv" suffix(, 0)
+        #embed "../data/meshes/bottommid.csv" suffix(, 0)
     };
     constexpr char fronthighcsv[] =
     {
-        #embed "../data/fronthigh.csv" suffix(, 0)
+        #embed "../data/meshes/fronthigh.csv" suffix(, 0)
     };
     constexpr char frontlowcsv[] =
     {
-        #embed "../data/frontlow.csv" suffix(, 0)
+        #embed "../data/meshes/frontlow.csv" suffix(, 0)
     };
     constexpr char frontmidcsv[] =
     {
-        #embed "../data/frontmid.csv" suffix(, 0)
+        #embed "../data/meshes/frontmid.csv" suffix(, 0)
     };
     constexpr char lefthighcsv[] =
     {
-        #embed "../data/lefthigh.csv" suffix(, 0)
+        #embed "../data/meshes/lefthigh.csv" suffix(, 0)
     };
     constexpr char leftlowcsv[] =
     {
-        #embed "../data/leftlow.csv" suffix(, 0)
+        #embed "../data/meshes/leftlow.csv" suffix(, 0)
     };
     constexpr char leftmidcsv[] =
     {
-        #embed "../data/leftmid.csv" suffix(, 0)
+        #embed "../data/meshes/leftmid.csv" suffix(, 0)
     };
     constexpr char righthighcsv[] =
     {
-        #embed "../data/righthigh.csv" suffix(, 0)
+        #embed "../data/meshes/righthigh.csv" suffix(, 0)
     };
     constexpr char rightlowcsv[] =
     {
-        #embed "../data/rightlow.csv" suffix(, 0)
+        #embed "../data/meshes/rightlow.csv" suffix(, 0)
     };
     constexpr char rightmidcsv[] =
     {
-        #embed "../data/rightmid.csv" suffix(, 0)
+        #embed "../data/meshes/rightmid.csv" suffix(, 0)
     };
     constexpr char tophighcsv[] =
     {
-        #embed "../data/tophigh.csv" suffix(, 0)
+        #embed "../data/meshes/tophigh.csv" suffix(, 0)
     };
     constexpr char toplowcsv[] =
     {
-        #embed "../data/toplow.csv" suffix(, 0)
+        #embed "../data/meshes/toplow.csv" suffix(, 0)
     };
     constexpr char topmidcsv[] =
     {
-        #embed "../data/topmid.csv" suffix(, 0)
+        #embed "../data/meshes/topmid.csv" suffix(, 0)
     };
     constexpr char tunnelhighcsv[] =
     {
-        #embed "../data/tunnelhigh.csv" suffix(, 0)
+        #embed "../data/meshes/tunnelhigh.csv" suffix(, 0)
     };
     constexpr char tunnellowcsv[] =
     {
-        #embed "../data/tunnellow.csv" suffix(, 0)
+        #embed "../data/meshes/tunnellow.csv" suffix(, 0)
     };
     constexpr char tunnelmidcsv[] =
     {
-        #embed "../data/tunnelmid.csv" suffix(, 0)
+        #embed "../data/meshes/tunnelmid.csv" suffix(, 0)
     };
 
 
@@ -287,3 +288,4 @@ constexpr static auto BALL_COLS = util::make_array<uint16_t,BALL_COLS_SIZE>(crea
 
 
 
+#endif

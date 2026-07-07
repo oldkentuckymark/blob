@@ -23,11 +23,11 @@ public:
     {
         constexpr char level0csv[] =
         {
-            #embed "../data/level.txt" suffix(, 0)
+            #embed "../data/levels/level.txt" suffix(, 0)
         };
         constexpr char level1csv[] =
         {
-            #embed "../data/level.txt" suffix(, 0)
+            #embed "../data/levels/level.txt" suffix(, 0)
         };
 
 

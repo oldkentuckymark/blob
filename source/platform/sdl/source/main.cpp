@@ -118,7 +118,7 @@ auto main() -> int
 
     Context ctx;
     ctx.setViewPort(240,160);
-
+    ctx.setFaceCulling(1);
 
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
@@ -140,6 +140,8 @@ auto main() -> int
 
             }
         }
+        if(bool doinput = true)
+        {
         auto const * const keys = SDL_GetKeyboardState(nullptr);
         if (keys[SDL_SCANCODE_ESCAPE])
         {
@@ -185,7 +187,7 @@ auto main() -> int
         {
             inputs[9] = true;
         }
-
+        }
 
         c2 = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>( c2.time_since_epoch()-c1.time_since_epoch()).count() >= 16)
@@ -196,8 +198,22 @@ auto main() -> int
 
         ctx.clear();
 
+        ctx.getVertexFunction().camPos = {1.0_fx,1.5_fx,-2.8_fx};
+        ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{0.0004_fx,0.0000_fx,0.0000_fx};
 
+        ctx.setVertexPointer(3,0,(void*)MESH_FRONTLOW.data());
+        ctx.setColorPointer(util::Convert888to555(255,0,0),nullptr);
+        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::FRONTLOW)]);
 
+        ctx.setVertexPointer(3,0,(void*)MESH_TOPLOW.data());
+        ctx.setColorPointer(util::Convert888to555(255,255,0),nullptr);
+        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TOPLOW)]);
+
+        ctx.setFaceCulling(0);
+        ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
+        ctx.setColorPointer(util::Convert888to555(255,0,127),nullptr);
+        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TUNNELLOW)]);
+        ctx.setFaceCulling(1);
 
         ctx.present();
 

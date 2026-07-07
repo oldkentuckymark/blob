@@ -371,11 +371,11 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
 
-                if(is_front_facing(v0, v1, v2))
+                if(is_cull_passing(v0, v1, v2))
                 {
                     to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
 
-                    std::array<vec3, 6> arr;
+                    std::array<vec3, 15> arr;
                     auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
 
 
@@ -400,11 +400,11 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
 
-                if(is_front_facing(v0, v1, v2))
+                if(is_cull_passing(v0, v1, v2))
                 {
                     to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
 
-                    std::array<vec3, 6> arr;
+                    std::array<vec3, 15> arr;
                     auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
 
 
@@ -436,21 +436,26 @@ public:
         return vf_;
     }
 
+    auto setFaceCulling(int32_t mode) -> void
+    {
+        cull_ = mode;
+    }
+
 private:
 
     auto clipAndTriangulateTriangle(
         const vec3& A,
         const vec3& B,
         const vec3& C,
-        std::array<vec3,6>& outVerts) -> int
+        std::array<vec3,15>& outVerts) -> int
     {
         const auto left   = 0.0_fx;
         const auto right  = viewport_width_fx_;
         const auto bottom = 0.0_fx;
         const auto top    = viewport_height_fx_;
 
-        std::array<vec3,6> poly{};
-        std::array<vec3,6> temp{};
+        std::array<vec3,7> poly{};
+        std::array<vec3,7> temp{};
         int polyCount = 3;
 
         // Input (no asserts)
@@ -540,7 +545,8 @@ private:
         }
         else {
             for (int i = 1; i < polyCount - 1; ++i) {
-                outVerts[outCount++] = poly[0];
+                outVerts[outCount++] =
+                    poly[0];
                 outVerts[outCount++] = poly[i];
                 outVerts[outCount++] = poly[i + 1];
             }
@@ -686,12 +692,16 @@ private:
         p.y = p.y / p.z;
     }
 
-    [[nodiscard]] auto is_front_facing(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> bool
+    [[nodiscard]] auto is_cull_passing(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> bool
     {
         vec3 a = v1 - v0;
         vec3 b = v2 - v0;
         vec3 normal = vec3::cross(a, b);
-        return normal.z >  0.0_fx;
+
+        if(cull_ == 1) [[likely]]  { return normal.z >  0.0_fx; }
+        else if(cull_ == 0) { return true; }
+        else { return normal.z <  0.0_fx; }
+
     }
 
     auto to_screen_space(vec3& p) -> void
@@ -725,6 +735,8 @@ private:
 
     std::array<uint16_t, MAX_VERTS> working_color_buffer_;
     uint32_t working_color_buffer_size_{0};
+
+    int32_t cull_ = 1;
 
     static constexpr vec4 frustrum_[6] =
     {
