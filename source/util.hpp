@@ -25,6 +25,21 @@ constexpr auto Convert555to888(uint16_t color) -> std::array<uint8_t, 4>
 }
 
 
+constexpr auto shade(uint16_t color, int16_t shades) -> uint16_t
+{
+
+    int16_t r = (int16_t)((color >> 10) & 0x1f);
+    int16_t g = (int16_t)((color >> 5) & 0x1f);
+    int16_t b = (int16_t)(color & 0x1f);
+
+    int16_t r_val = r + shades;
+    int16_t g_val = g + shades;
+    int16_t b_val = b + shades;
+    int16_t combined = (r_val << 10) | (g_val << 5) | b_val;
+    return static_cast<uint16_t>(combined);
+}
+
+
 constexpr static auto CreateEGAPalette() -> std::array<uint16_t, 64>
 {
     std::array<uint16_t, 64> palette{};

@@ -203,15 +203,15 @@ auto main() -> int
 
         ctx.setVertexPointer(3,0,(void*)MESH_FRONTLOW.data());
         ctx.setColorPointer(util::Convert888to555(255,0,0),nullptr);
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::FRONTLOW)]);
+        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::FRONTLOW)]);
 
         ctx.setVertexPointer(3,0,(void*)MESH_TOPLOW.data());
         ctx.setColorPointer(util::Convert888to555(255,255,0),nullptr);
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TOPLOW)]);
+        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TOPLOW)]);
 
         ctx.setFaceCulling(0);
         ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
-        ctx.setColorPointer(util::Convert888to555(255,0,127),nullptr);
+        ctx.setColorPointer(util::shade(util::Convert888to555(255,255,255), -15),nullptr);
         ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TUNNELLOW)]);
         ctx.setFaceCulling(1);
 
