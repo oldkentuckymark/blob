@@ -20,6 +20,8 @@ set(BLOB_HEADERS
     source/player.hpp
     source/level.hpp
     source/csv.hpp
+    source/cell.hpp
+
 
 )
 

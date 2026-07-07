@@ -1,75 +1,23 @@
-#pragma once
+#ifndef LEVEL_HPP
+#define LEVEL_HPP
 
 #include <cstdint>
-#include "ffr.hpp"
 #include "util.hpp"
 #include "util.hpp"
+#include "cell.hpp"
 
-
-class Cell
-{
-public:
-
-    enum class Collision : uint8_t
-    {
-        Empty,
-        PlaneLow,
-        PlaneMid,
-        PlaneHigh,
-        BlockLow,
-        BlockMid,
-        BlockHigh,
-        TunnelLow,
-        TunnelMid,
-        TunnelHigh,
-        TunnelPlaneLow,
-        TunnelPlaneMid,
-        TunnelPlaneHigh,
-        TunnelBlockLow,
-        TunnelBlockMid,
-        TunnelBlockHigh
-    };
-
-    enum class Type : uint8_t
-    {
-        Normal,
-        Oxygen,
-        Boost,
-        Sticky,
-        Slippery,
-        Kill,
-        End
-    };
-
-
-
-    constexpr Cell() = default;
-
-    constexpr Cell(Collision const c, Type const t, uint16_t const tc, uint16_t const sc) :
-        collision(c), type(t), topColor(tc), sideColor(sc)
-    {
-
-    }
-
-    ~Cell() = default;
-
-    Collision collision{Collision::Empty};
-    Type type{Type::Normal};
-    uint16_t topColor{0};
-    uint16_t sideColor{0};
-
-
-private:
-
-
-
-};
 
 
 class Level
 {
 
 public:
+
+    Level(Cell const * cells, int16_t const oxygen, int16_t const gravity) :
+        cells_(cells), oxygen_(oxygen), gravity_(gravity)
+    {
+        length_ = sizeof(cells) / 7;
+    }
 
     consteval static auto createLevel(uint8_t const lvl) -> std::vector<Cell>
     {
@@ -83,7 +31,7 @@ public:
         };
 
 
-        char const* csvp{nullptr};
+        char const* csvp{level0csv};
         switch(lvl)
         {
         case 0:
@@ -92,6 +40,8 @@ public:
         case 1:
             csvp = level1csv;
             break;
+        default:
+            csvp = level0csv;
         }
 
 
@@ -121,22 +71,39 @@ private:
     {
         auto isSeparator = [](char c)
         {
-            return c == ',' || c == '\r' || c == '\n' || c == ' ' || c == '\t';
+            return c == ',' || c == '\r' || c == '\n' || c == '\t' || c == '|';
+        };
+
+        auto num = [](char const * p)
+        {
+            uint16_t c = static_cast<uint16_t>(*p);
+
+            if(c == ' ') { c = '0'; }
+            if(c >= '0' && c <= 'o') {c = c - '0';}
+
+            return c;
         };
 
         constexpr auto palette_{util::CreateEGAPalette()};
 
         std::vector<Cell> tiles;
 
-        const char* p = csv;
-        while (isSeparator(*p)) ++p;
+        char const* p = csv;
+
         while (*p != '\0')
         {
-            Cell::Collision collision = static_cast<Cell::Collision>(*p++ - '0');
-            Cell::Type type = static_cast<Cell::Type>(*p++ - '0');
 
-            uint16_t topcolor = *p++ - '0';
-            uint16_t sidecolor = *p++ - '0';
+            Cell::Collision collision = static_cast<Cell::Collision>(num(p));
+            ++p;
+
+           Cell::Type type = static_cast<Cell::Type>(num(p));
+            ++p;
+
+            uint16_t topcolor = num(p);
+            ++p;
+
+            uint16_t sidecolor = num(p);
+            ++p;
 
             topcolor = palette_[topcolor];
             sidecolor = palette_[sidecolor];
@@ -147,11 +114,11 @@ private:
             {
                 ++p;
             }
+
         }
 
         return tiles;
     }
-
 
 
 
@@ -166,5 +133,5 @@ constexpr static auto LEVEL0 = util::make_array< Cell, Level::createLevel(0).siz
 constexpr static auto LEVEL1 = util::make_array< Cell, Level::createLevel(1).size() >(Level::createLevel(1));
 
 
-
+#endif
 

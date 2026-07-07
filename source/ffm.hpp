@@ -281,7 +281,7 @@ consteval auto makeInvsqrtTable() -> LUT
     r[0] = 0.0_fx;
     for(auto i = 1ul; i < r.size(); ++i)
     {
-        double const x = 1.0 / std::sqrt(i);
+        double const x = 1.0;// / std::sqrt(i);
         fixed32 const y{x};
         r[i] = y;
     }
