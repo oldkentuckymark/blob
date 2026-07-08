@@ -116,9 +116,15 @@ auto main() -> int
 {
 
 
+
     Context ctx;
     ctx.setViewPort(240,160);
     ctx.setFaceCulling(1);
+
+    auto k = ffm::calculateLight({0.0_fx,-1.0_fx,0.0_fx},
+                                {1.0_fx,0.0_fx,1.0_fx},
+                                {0.0_fx,-1.0_fx,0.0_fx},
+                                {1.0_fx,1.0_fx,1.0_fx});
 
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
@@ -211,7 +217,7 @@ auto main() -> int
 
         ctx.setFaceCulling(0);
         ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
-        ctx.setColorPointer(util::shade(util::Convert888to555(255,255,255), -15),nullptr);
+        ctx.setColorPointer(k,nullptr);
         ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TUNNELLOW)]);
         ctx.setFaceCulling(1);
 

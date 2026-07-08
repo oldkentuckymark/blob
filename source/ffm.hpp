@@ -376,7 +376,12 @@ public:
 
     constexpr auto operator/(fixed32 const &that) const -> vec2 { return {x / that, y / that}; }
 
-    static constexpr auto cross(vec2 const & a, vec2 const & b) -> vec2
+    constexpr static auto dot(vec2 const & a, vec2 const & b) -> fixed32
+    {
+        return {(a.x * b.x) + (a.y * b.y)};
+    }
+
+    constexpr static auto cross(vec2 const & a, vec2 const & b) -> vec2
     {
         return {a.x * b.y - a.y * b.x};
     }
@@ -386,10 +391,8 @@ public:
         const auto x2 = x * x;
         const auto y2 = y * y;
         const auto sum = x2 + y2;
-        return 1.0_fx;//sqrt(sum);
+        return sqrt(sum);
     }
-
-    auto operator[](uint8_t const p) -> fixed32 & { return *((&(this->x)) + p); }
 };
 
 class vec3 : public vec2
@@ -427,12 +430,17 @@ public:
         return {this->x / that, this->y / that, this->z / that};
     }
 
-    constexpr auto operator*(vec3 const &that) const -> fixed32
+    constexpr auto operator*(vec3 const &that) const -> vec3
     {
-        return {(this->x * that.x) + (this->y * that.y) + (this->z * that.z)};
+        return {(this->x * that.x), (this->y * that.y), (this->z * that.z)};
     }
 
-    static constexpr auto cross(vec3 const & a, vec3 const & b) -> vec3
+    constexpr static auto dot(vec3 const & a, vec3 const & b) -> fixed32
+    {
+        return a.x*b.x + a.y*b.y + a.z*b.z;
+    }
+
+    constexpr static auto cross(vec3 const & a, vec3 const & b) -> vec3
     {
         return {a.y * b.z - a.z * b.y,a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
     }
@@ -443,7 +451,7 @@ public:
         const auto y2 = y * y;
         const auto z2 = z * z;
         const auto sum = x2 + y2 + z2;
-        return 1.0_fx;//sqrt(sum);
+        return sqrt(sum);
     }
 };
 
@@ -482,9 +490,14 @@ public:
         return {this->x / that, this->y / that, this->z / that, this->w / that};
     }
 
-    constexpr auto operator*(vec4 const &that) const -> fixed32
+    constexpr auto operator*(vec4 const &that) const -> vec4
     {
-        return {(this->x * that.x) + (this->y * that.y) + (this->z * that.z) + (this->w * that.w)};
+        return {(this->x * that.x), (this->y * that.y), (this->z * that.z), (this->w * that.w)};
+    }
+
+    [[nodiscard]] constexpr static auto dot(vec4 const & a, vec4 const & b) -> fixed32
+    {
+        return {(a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w)};
     }
 
     [[nodiscard]] constexpr auto length() const -> fixed32
@@ -494,7 +507,7 @@ public:
         const auto z2 = z * z;
         const auto w2 = w * w;
         const auto sum = x2 + y2 + z2 + w2;
-        return 1.0_fx;//sqrt(sum);
+        return sqrt(sum);
     }
 };
 
@@ -721,6 +734,23 @@ public:
 {
     if(x > y) {return x;}
     return y;
+}
+
+[[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
+                              ffm::vec3 const & trianglecolor,
+                              ffm::vec3 const & lightdirection,
+                              ffm::vec3 const & lightcolor) -> uint16_t
+{
+    ffm::fixed32 factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
+
+    ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
+
+    newcolor = (newcolor * 255.0_fx) + 0.5_fx;
+
+
+    return util::Convert888to555(static_cast<int16_t>(newcolor.x),
+                                 static_cast<int16_t>(newcolor.y),
+                                 static_cast<int16_t>(newcolor.z));
 }
 
 } // namespace ffm
