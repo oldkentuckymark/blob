@@ -9,7 +9,7 @@
 #include "level.hpp"
 
 
-//general mesh, block mesh, tunnel mesh?????
+//giant vertex buffer global, mesh is indices, do index rendering???
 
 class Mesh
 {

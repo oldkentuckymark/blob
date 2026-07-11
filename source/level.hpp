@@ -148,5 +148,5 @@ private:
 constexpr static Level LEVEL0{0,100,500};
 constexpr static Level LEVEL1{1,200,1000};
 
-#endif
+#endif // LEVEL_HPP
 
