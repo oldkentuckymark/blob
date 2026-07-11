@@ -287,8 +287,8 @@ public:
     }
 
 
-    std::array<ffm::vec3, N> verts{};
-    std::array<uint16_t, N> colors{};
+    std::array<ffm::vec3, N> verts;
+    std::array<uint16_t, N> colors;
 
 
 private:
@@ -296,7 +296,9 @@ private:
 
 };
 
-constexpr static StaticMesh<Mesh({Mesh::Piece::SHIP,Mesh::Piece::BACKLOW}).size()> MESH_SHIP(Mesh({Mesh::Piece::SHIP,Mesh::Piece::BACKLOW}));
+constexpr static StaticMesh<Mesh({Mesh::Piece::SHIP}).size()> MESH_SHIP(Mesh({Mesh::Piece::SHIP}));
+constexpr static StaticMesh<Mesh({Mesh::Piece::FLAT}).size()> MESH_FLAT(Mesh({Mesh::Piece::FLAT}));
+constexpr static StaticMesh<Mesh({Mesh::Piece::FLAT}).size()> MESH_BLOCK(Mesh({Mesh::Piece::FLAT}));
 
 
 
