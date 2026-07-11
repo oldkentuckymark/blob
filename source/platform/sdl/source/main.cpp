@@ -8,16 +8,6 @@
 #include <SDL3/SDL_events.h>
 #include "mesh.hpp"
 
-#ifdef GBA
-#define IWRAM_CODE __attribute__((section(".iwram"), long_call))
-#else
-#define IWRAM_CODE
-#endif
-
-
-/////splitinto headers and souirces
-/// make SDL_Context/GBA_Context same type in sources
-/// renderer.hpp creates or stores Dervied context marked as final
 
 
 class FFT
@@ -121,7 +111,7 @@ auto main() -> int
     ctx.setViewPort(240,160);
     ctx.setFaceCulling(1);
 
-    auto k = ffm::calculateLight({0.0_fx,-1.0_fx,0.0_fx},
+    auto k = util::calculateLight({0.0_fx,-1.0_fx,0.0_fx},
                                 {1.0_fx,0.0_fx,1.0_fx},
                                 {0.0_fx,-1.0_fx,0.0_fx},
                                 {1.0_fx,1.0_fx,1.0_fx});
@@ -205,23 +195,20 @@ auto main() -> int
         ctx.clear();
 
         ctx.getVertexFunction().camPos = {1.0_fx,1.5_fx,-2.8_fx};
-        ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{0.0004_fx,0.0000_fx,0.0000_fx};
+        ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{-0.0003_fx,0.0000_fx,0.0000_fx};
 
-        ctx.setVertexPointer(3,0,(void*)MESH_FRONTLOW.data());
+
         ctx.setColorPointer(util::Convert888to555(255,0,0),nullptr);
-        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::FRONTLOW)]);
 
-        ctx.setVertexPointer(3,0,(void*)MESH_TOPLOW.data());
-        ctx.setColorPointer(util::Convert888to555(255,255,0),nullptr);
-        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TOPLOW)]);
 
         ctx.setFaceCulling(0);
-        ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
+        ctx.setVertexPointer(3,0,(void*)TUNNEL_LOW.data());
         ctx.setColorPointer(k,nullptr);
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELLOW)]);
+        ctx.drawArray(ffr::DrawType::Triangles,0,TUNNEL_LOW.size());
         ctx.setFaceCulling(1);
 
         ctx.present();
+
 
     }
 

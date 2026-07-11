@@ -1,22 +1,11 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MESH_HPP
+#define MESH_HPP
 
 #include "ffm.hpp"
 #include "csv.hpp"
 #include <utility>
+#include <cstdint>
 #include "level.hpp"
-
-class Mesh
-{
-public:
-    constexpr Mesh()
-    {
-
-    }
-
-private:
-
-};
 
 enum class MESH_TYPE : uint16_t
 {
@@ -49,11 +38,25 @@ enum class MESH_TYPE : uint16_t
 };
 
 
-
-
-
-consteval auto createMesh(MESH_TYPE const m) -> std::pair<std::vector<ffm::fixed32>,std::vector<uint16_t>> const
+class Mesh
 {
+public:
+    consteval Mesh()
+    {
+
+    }
+
+    ffm::vec3 * verts;
+    uint16_t numVerts;
+    uint16_t * colors;
+    uint16_t numColors;
+};
+
+
+//loadverts()??? better name??
+[[nodiscard]] consteval auto createMesh(MESH_TYPE const m) -> std::pair<std::vector<ffm::vec3>,std::vector<uint16_t>> const
+{
+
     constexpr char shipcsv[] =
     {
         #embed "../data/meshes/ship.csv" suffix(, 0)
@@ -148,7 +151,8 @@ consteval auto createMesh(MESH_TYPE const m) -> std::pair<std::vector<ffm::fixed
     };
 
 
-    char const* csvp{nullptr};
+
+    char const* csvp{shipcsv};
     switch(m)
     {
     case MESH_TYPE::SHIP:
@@ -223,23 +227,18 @@ consteval auto createMesh(MESH_TYPE const m) -> std::pair<std::vector<ffm::fixed
     }
 
 
+    std::vector<double> dv = parse_csv(csvp);
 
-
-
-
-
-
-    std::vector<double> dv =  parse_csv(csvp);
-
-    std::vector<ffm::fixed32> fvec;
+    std::vector<ffm::vec3> fvec;
     std::vector<uint16_t> cvec;
 
 
     for(std::size_t i = 0; i < dv.size(); i = i + 7)
     {
-        fvec.push_back(ffm::fixed32{dv[i+0]});
-        fvec.push_back(ffm::fixed32{dv[i+1]});
-        fvec.push_back(ffm::fixed32{dv[i+2]});
+        ffm::fixed32 const x =  static_cast<ffm::fixed32>(dv[i+0]);
+        ffm::fixed32 const y =  static_cast<ffm::fixed32>(dv[i+1]);
+        ffm::fixed32 const z =  static_cast<ffm::fixed32>(dv[i+2]);
+        fvec.push_back({x,y,z});
 
         uint8_t const r = static_cast<uint8_t>(dv[i+3] * 255.0);
         uint8_t const g = static_cast<uint8_t>(dv[i+4] * 255.0);
@@ -252,51 +251,11 @@ consteval auto createMesh(MESH_TYPE const m) -> std::pair<std::vector<ffm::fixed
     return {fvec,cvec};
 }
 
-consteval auto getMeshSizes() -> std::array<std::size_t, static_cast<std::size_t>(MESH_TYPE::NUM_MESHES)> const
-{
-    std::array<std::size_t, static_cast<std::size_t>(MESH_TYPE::NUM_MESHES)> r;
-    for(std::size_t i = 0; i < static_cast<std::size_t>(MESH_TYPE::NUM_MESHES); ++i)
-    {
-        r[i] = createMesh(static_cast<MESH_TYPE>(i)).first.size() / 3;
-    }
-    return r;
-}
 
-constexpr static auto MESH_SIZES = getMeshSizes();
-
-constexpr static auto MESH_SHIP = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::SHIP)]*3>(createMesh(MESH_TYPE::SHIP).first);
-constexpr static auto MESH_FLAT = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::FLAT)]*3>(createMesh(MESH_TYPE::FLAT).first);
-constexpr static auto MESH_BACKHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BACKHIGH)*3]>(createMesh(MESH_TYPE::BACKHIGH).first);
-constexpr static auto MESH_BACKLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BACKLOW)]*3>(createMesh(MESH_TYPE::BACKLOW).first);
-constexpr static auto MESH_BACKMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BACKMID)]*3>(createMesh(MESH_TYPE::BACKMID).first);
-constexpr static auto MESH_BOTTOMHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BOTTOMHIGH)]*3>(createMesh(MESH_TYPE::BOTTOMHIGH).first);
-constexpr static auto MESH_BOTTOMLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BOTTOMLOW)]*3>(createMesh(MESH_TYPE::BOTTOMLOW).first);
-constexpr static auto MESH_BOTTOMMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::BOTTOMMID)]*3>(createMesh(MESH_TYPE::BOTTOMMID).first);
-constexpr static auto MESH_FRONTHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::FRONTHIGH)]*3>(createMesh(MESH_TYPE::FRONTHIGH).first);
-constexpr static auto MESH_FRONTLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::FRONTLOW)]*3>(createMesh(MESH_TYPE::FRONTLOW).first);
-constexpr static auto MESH_FRONTMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::FRONTMID)]*3>(createMesh(MESH_TYPE::FRONTMID).first);
-constexpr static auto MESH_LEFTLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::LEFTLOW)]*3>(createMesh(MESH_TYPE::LEFTLOW).first);
-constexpr static auto MESH_LEFTHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::LEFTHIGH)]*3>(createMesh(MESH_TYPE::LEFTHIGH).first);
-constexpr static auto MESH_LEFTMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::LEFTMID)]*3>(createMesh(MESH_TYPE::LEFTMID).first);
-constexpr static auto MESH_RIGHTHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::RIGHTHIGH)]*3>(createMesh(MESH_TYPE::RIGHTHIGH).first);
-constexpr static auto MESH_RIGHTLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::RIGHTLOW)]*3>(createMesh(MESH_TYPE::RIGHTLOW).first);
-constexpr static auto MESH_RIGHTMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::RIGHTMID)]*3>(createMesh(MESH_TYPE::RIGHTMID).first);
-constexpr static auto MESH_TOPHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TOPHIGH)]*3>(createMesh(MESH_TYPE::TOPHIGH).first);
-constexpr static auto MESH_TOPLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TOPLOW)]*3>(createMesh(MESH_TYPE::TOPLOW).first);
-constexpr static auto MESH_TOPMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TOPMID)]*3>(createMesh(MESH_TYPE::TOPMID).first);
-constexpr static auto MESH_TUNNELHIGH = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELHIGH)]*3>(createMesh(MESH_TYPE::TUNNELHIGH).first);
-constexpr static auto MESH_TUNNELLOW = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELLOW)]*3>(createMesh(MESH_TYPE::TUNNELLOW).first);
-constexpr static auto MESH_TUNNELMID = util::make_array<ffm::fixed32, MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELMID)]*3>(createMesh(MESH_TYPE::TUNNELMID).first);
+constexpr static auto TUNNEL_LOW = util::make_array<ffm::vec3,createMesh(MESH_TYPE::TUNNELLOW).first.size()>(createMesh(MESH_TYPE::TUNNELLOW).first);
 
 
 
 
-constexpr static auto BALL_VERTS_SIZE = createMesh(MESH_TYPE::SHIP).first.size() / 3;
-constexpr static auto BALL_VERTS = util::make_array<ffm::fixed32,BALL_VERTS_SIZE * 3>(createMesh(MESH_TYPE::SHIP).first);
 
-constexpr static auto BALL_COLS_SIZE = createMesh(MESH_TYPE::SHIP).second.size();
-constexpr static auto BALL_COLS = util::make_array<uint16_t,BALL_COLS_SIZE>(createMesh(MESH_TYPE::SHIP).second);
-
-
-
-#endif
+#endif // MESH_HPP

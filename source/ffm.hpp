@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <array>
 #include <cmath>
-#include "util.hpp"
 
 namespace ffm
 {
@@ -736,22 +735,6 @@ public:
     return y;
 }
 
-[[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
-                              ffm::vec3 const & trianglecolor,
-                              ffm::vec3 const & lightdirection,
-                              ffm::vec3 const & lightcolor) -> uint16_t
-{
-    ffm::fixed32 factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
-
-    ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
-
-    newcolor = (newcolor * 255.0_fx) + 0.5_fx;
-
-
-    return util::Convert888to555(static_cast<int16_t>(newcolor.x),
-                                 static_cast<int16_t>(newcolor.y),
-                                 static_cast<int16_t>(newcolor.z));
-}
 
 } // namespace ffm
 

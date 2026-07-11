@@ -431,7 +431,7 @@ public:
 
     }
 
-    auto getVertexFunction() -> VERTEX_FUNCTION&
+    [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
     {
         return vf_;
     }
@@ -738,7 +738,7 @@ private:
     std::array<uint16_t, MAX_VERTS> working_color_buffer_;
     uint32_t working_color_buffer_size_{0};
 
-    int32_t cull_ = 1;
+    int32_t cull_{1};
 
     static constexpr vec4 frustrum_[6] =
     {

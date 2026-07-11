@@ -3,23 +3,25 @@
 
 #include <cstdint>
 #include "util.hpp"
-#include "util.hpp"
 #include "cell.hpp"
+#include "mesh.hpp"
 
+
+
+//read in file, see cell has tunnel, add tunnel colors to static list, point CellMesh to colors
+//see what side is on, set 3 pointers to side MESHPIECES
 
 
 class Level
 {
 
 public:
+    constexpr static uint16_t LEVEL_WIDTH{7};
+    constexpr static uint16_t LEVEL_MAX_LENGTH{512};
 
-    Level(Cell const * cells, int16_t const oxygen, int16_t const gravity) :
-        cells_(cells), oxygen_(oxygen), gravity_(gravity)
-    {
-        length_ = sizeof(cells) / 7;
-    }
 
-    consteval static auto createLevel(uint8_t const lvl) -> std::vector<Cell>
+    consteval Level(uint16_t number, int16_t const oxygen, int16_t const gravity) :
+        oxygen_(oxygen), gravity_(gravity)
     {
         constexpr char level0csv[] =
         {
@@ -32,7 +34,7 @@ public:
 
 
         char const* csvp{level0csv};
-        switch(lvl)
+        switch(number)
         {
         case 0:
             csvp = level0csv;
@@ -46,17 +48,24 @@ public:
 
 
 
-        auto data = parseCsvTiles(csvp);
+        auto data = parseCsvLevel(csvp);
+        length_ = data.size() / LEVEL_WIDTH;
 
-        return data;
-
-
+        Cell * dp = &data[0];
+        for(auto l = 0ul; l < length_; ++l)
+        {
+            for(auto w = 0ul; w < LEVEL_WIDTH; ++w)
+            {
+                cells[w][l] = *dp;
+                ++dp;
+            }
+        }
     }
 
 
-    auto getLength() const -> int16_t { return length_; }
+    [[nodiscard]] consteval auto getLength() const -> int16_t { return length_; }
 
-    auto getOxygen() const -> int16_t { return oxygen_; }
+    [[nodiscard]] consteval auto getOxygen() const -> int16_t { return oxygen_; }
 
 private:
     int16_t length_;
@@ -64,10 +73,11 @@ private:
     int16_t gravity_;
 
 
-    Cell const * cells_{nullptr};
+    Cell cells[LEVEL_WIDTH][LEVEL_MAX_LENGTH];
 
 
-    consteval static auto parseCsvTiles(const char* csv) -> std::vector<Cell>
+
+    [[nodiscard]] consteval static auto parseCsvLevel(const char* csv) -> std::vector<Cell>
     {
         auto isSeparator = [](char c)
         {
@@ -135,13 +145,8 @@ private:
 };
 
 
-
-
-
-
-constexpr static auto LEVEL0 = util::make_array< Cell, Level::createLevel(0).size() >(Level::createLevel(0));
-constexpr static auto LEVEL1 = util::make_array< Cell, Level::createLevel(1).size() >(Level::createLevel(1));
-
+constexpr static Level LEVEL0{0,100,500};
+constexpr static Level LEVEL1{1,200,1000};
 
 #endif
 

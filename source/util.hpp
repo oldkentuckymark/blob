@@ -3,11 +3,12 @@
 #include <cstdint>
 #include <array>
 #include <vector>
+#include "ffm.hpp"
 
 namespace util
 {
 
-constexpr auto Convert555to888(uint16_t color) -> std::array<uint8_t, 3>
+[[nodiscard]] constexpr auto Convert555to888(uint16_t color) -> std::array<uint8_t, 3>
 {
     uint8_t const red = (color & 31) << 3;
     uint8_t const green = ((color >> 5) & 31) << 3;
@@ -15,7 +16,7 @@ constexpr auto Convert555to888(uint16_t color) -> std::array<uint8_t, 3>
     return {red,green,blue};
 }
 
-constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b) -> uint16_t
+[[nodiscard]] constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b) -> uint16_t
 {
     return (((r >> 3) & 31) |
             (((g >> 3) & 31) << 5) |
@@ -23,7 +24,7 @@ constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b
 
 }
 
-constexpr auto Convert888to555(std::array<uint8_t, 3> const & rgb) -> uint16_t
+[[nodiscard]] constexpr auto Convert888to555(std::array<uint8_t, 3> const & rgb) -> uint16_t
 {
     return (((rgb[0] >> 3) & 31) |
             (((rgb[1] >> 3) & 31) << 5) |
@@ -31,7 +32,7 @@ constexpr auto Convert888to555(std::array<uint8_t, 3> const & rgb) -> uint16_t
 
 }
 
-constexpr auto brightenColor(uint16_t color, int8_t shades) -> uint16_t
+[[nodiscard]] constexpr auto brightenColor(uint16_t color, int8_t shades) -> uint16_t
 {
     // Extract 5-bit channels (RGB555 layout: bit 15 unused, 14-10 R, 9-5 G, 4-0 B)
     uint8_t r = (color >> 10) & 0x1F;
@@ -52,7 +53,7 @@ constexpr auto brightenColor(uint16_t color, int8_t shades) -> uint16_t
     return static_cast<uint16_t>((nr << 10) | (ng << 5) | nb);
 }
 
-constexpr auto CreateEGAPalette() -> std::array<uint16_t, 64>
+[[nodiscard]] constexpr auto CreateEGAPalette() -> std::array<uint16_t, 64>
 {
     std::array<uint16_t, 64> palette{};
 
@@ -69,7 +70,7 @@ constexpr auto CreateEGAPalette() -> std::array<uint16_t, 64>
 }
 
 template<class T, std::size_t N>
-consteval auto make_array(std::vector<T> const & vec) -> std::array<T, N>
+ [[nodiscard]] consteval auto make_array(std::vector<T> const & vec) -> std::array<T, N>
 {
     std::array<T, N> arr{};
     for (std::size_t i = 0; i < N; ++i)
@@ -79,6 +80,25 @@ consteval auto make_array(std::vector<T> const & vec) -> std::array<T, N>
     return arr;
 }
 
+[[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
+                                            ffm::vec3 const & trianglecolor,
+                                            ffm::vec3 const & lightdirection,
+                                            ffm::vec3 const & lightcolor) -> uint16_t
+{
+    ffm::fixed32 factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
+
+    ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
+
+    newcolor = (newcolor * 255.0_fx) + 0.5_fx;
+
+
+    return util::Convert888to555(static_cast<int16_t>(newcolor.x),
+                                 static_cast<int16_t>(newcolor.y),
+                                 static_cast<int16_t>(newcolor.z));
+}
+
 
 }
+
+
 
