@@ -72,7 +72,7 @@ private:
     int16_t oxygen_;
     int16_t gravity_;
 
-
+    //switch these for horizontal rendering in order, back to front?
     Cell cells[LEVEL_WIDTH][LEVEL_MAX_LENGTH];
 
 
