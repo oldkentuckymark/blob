@@ -8,7 +8,7 @@
 #include <cstdint>
 
 #include "ffr.hpp"
-#include "meshes.hpp"
+#include "mesh.hpp"
 
 #define KEY_A        0x0001
 #define KEY_B        0x0002
@@ -174,12 +174,12 @@ int main(void)
         ctx.setColorPointer(0,(uint16_t*)BALL_COLS.data());
         ctx.getVertexFunction().camPos = {3.0_fx,0.0_fx,-2.8_fx};
         ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{0.1_fx,0.1_fx,0.1_fx};
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::SHIP)]);
+        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::SHIP)]);
 
 
         ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
         ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,-2.8_fx};
-        ctx.drawArray(ffr::DrawType::TrianglesWireFrame,0,MESH_SIZES[static_cast<std::size_t>(MESH::TUNNELLOW)]);
+        ctx.drawArray(ffr::DrawType::TrianglesWireFrame,0,MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELLOW)]);
 
 
         ctx.present();

@@ -78,8 +78,18 @@ private:
         {
             uint16_t c = static_cast<uint16_t>(*p);
 
-            if(c == ' ') { c = '0'; }
-            if(c >= '0' && c <= 'o') {c = c - '0';}
+            if(c == ' ')
+            {
+                c = '0';
+            }
+            if(c >= '0' && c <= 'o')
+            {
+                c = c - '0';
+            }
+            else
+            {
+                throw "ERROR: Invalid data in level file!";
+            }
 
             return c;
         };

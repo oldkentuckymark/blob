@@ -16,7 +16,7 @@ set(BLOB_HEADERS
     source/ffm.hpp
     source/ffr.hpp
     source/ffp.hpp
-    source/meshes.hpp
+    source/mesh.hpp
     source/player.hpp
     source/level.hpp
     source/csv.hpp
@@ -44,6 +44,7 @@ set(BLOB_GBA_SOURCES
 add_executable(blob-sdl
     ${BLOB_SDL_SOURCES}
     ${BLOB_HEADERS}
+
 
 
 )

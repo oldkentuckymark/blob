@@ -6,7 +6,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_events.h>
-#include "meshes.hpp"
+#include "mesh.hpp"
 
 #ifdef GBA
 #define IWRAM_CODE __attribute__((section(".iwram"), long_call))
@@ -218,7 +218,7 @@ auto main() -> int
         ctx.setFaceCulling(0);
         ctx.setVertexPointer(3,0,(void*)MESH_TUNNELLOW.data());
         ctx.setColorPointer(k,nullptr);
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH::TUNNELLOW)]);
+        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SIZES[static_cast<std::size_t>(MESH_TYPE::TUNNELLOW)]);
         ctx.setFaceCulling(1);
 
         ctx.present();
