@@ -58,6 +58,11 @@ public:
                 ++dp;
             }
         }
+
+
+        //gen meshes and light colors here????
+
+
     }
 
 
