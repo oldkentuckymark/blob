@@ -61,6 +61,7 @@ public:
 
 
         //gen meshes and light colors here????
+        //global pos buffer, per level color buffer
 
 
     }
