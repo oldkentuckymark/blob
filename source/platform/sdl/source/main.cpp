@@ -202,12 +202,12 @@ auto main() -> int
 
 
         ctx.setFaceCulling(0);
-        ctx.setVertexPointer(3,0,(void*)MESH_SHIP.verts.data());
+        //ctx.setVertexPointer(3,0,(void*)MESH_SHIP.verts.data());
         ctx.setColorPointer(k,nullptr);
-        ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SHIP.verts.size());
+        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SHIP.verts.size());
         ctx.setFaceCulling(1);
 
-        MESH_SHIP.verts[0];
+        //MESH_SHIP.verts[0];
 
         ctx.present();
 

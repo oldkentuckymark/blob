@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UTIL_HPP
+#define UTIL_HPP
 
 #include <cstdint>
 #include <array>
@@ -8,6 +9,8 @@
 namespace util
 {
 
+
+
 [[nodiscard]] constexpr auto Convert555to888(uint16_t color) -> std::array<uint8_t, 3>
 {
     uint8_t const red = (color & 31) << 3;
@@ -15,6 +18,20 @@ namespace util
     uint8_t const blue = ((color >> 10) & 31) << 3;
     return {red,green,blue};
 }
+
+[[nodiscard]] constexpr auto Convert555tovec3(uint16_t color) -> ffm::vec3
+{
+    uint8_t const red = (color & 31) << 3;
+    uint8_t const green = ((color >> 5) & 31) << 3;
+    uint8_t const blue = ((color >> 10) & 31) << 3;
+
+    ffm::fixed32 const x(static_cast<int16_t>(red));
+    ffm::fixed32 const y(static_cast<int16_t>(green));
+    ffm::fixed32 const z(static_cast<int16_t>(blue));
+
+    return {x / 255.0_fx,y / 255.0_fx,z / 255.0_fx};
+}
+
 
 [[nodiscard]] constexpr auto Convert888to555(uint8_t const r, uint8_t const g, uint8_t const b) -> uint16_t
 {
@@ -80,12 +97,25 @@ template<class T, std::size_t N>
     return arr;
 }
 
+[[nodiscard]] constexpr auto triangleNormal(ffm::vec3 const & v0, ffm::vec3 const & v1, ffm::vec3 const & v2) -> ffm::vec3
+{
+    // Create two edge vectors from the vertices
+    ffm::vec3 const edge1 = v1 - v0;
+    ffm::vec3 const edge2 = v2 - v0;
+
+    // Compute the cross product to get the unnormalized normal
+    ffm::vec3 const normal = ffm::vec3::cross(edge1, edge2);
+
+    // Normalize the result to get a unit vector
+    return normal / normal.length();
+}
+
 [[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
                                             ffm::vec3 const & trianglecolor,
                                             ffm::vec3 const & lightdirection,
                                             ffm::vec3 const & lightcolor) -> uint16_t
 {
-    ffm::fixed32 factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
+    ffm::fixed32 const factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
 
     ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
 
@@ -100,5 +130,6 @@ template<class T, std::size_t N>
 
 }
 
+#endif // UTIL_HPP
 
 

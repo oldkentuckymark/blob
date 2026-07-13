@@ -280,7 +280,7 @@ consteval auto makeInvsqrtTable() -> LUT
     r[0] = 0.0_fx;
     for(auto i = 1ul; i < r.size(); ++i)
     {
-        double const x = 1.0;// / std::sqrt(i);
+        double const x = 0.0; //1.0 / std::sqrt(i);
         fixed32 const y{x};
         r[i] = y;
     }
@@ -348,7 +348,8 @@ consteval auto makeInvsqrtTable() -> LUT
     }
     else
     {
-        return INVSQRTTABLE[static_cast<int16_t>(n)];
+        return 0.0_fx;
+        //return INVSQRTTABLE[static_cast<int16_t>(n)];
     }
 }
 

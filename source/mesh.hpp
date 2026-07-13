@@ -5,11 +5,12 @@
 #include "csv.hpp"
 #include <utility>
 #include <cstdint>
+#include <tuple>
 #include <initializer_list>
-#include "level.hpp"
+#include "util.hpp"
 
 
-//giant vertex buffer global, mesh is indices, do index rendering???
+//levels own meshes and creat them and light them
 
 class Mesh
 {
@@ -17,7 +18,6 @@ public:
     enum class Piece : uint8_t
     {
         SHIP = 0,
-        FLAT,
         BACKHIGH,
         BACKLOW,
         BACKMID,
@@ -38,267 +38,276 @@ public:
         TOPMID,
         TUNNELHIGH,
         TUNNELLOW,
-        TUNNELMID
+        TUNNELMID,
+
+        NUM_PIECES
     };
 
 
-    consteval Mesh(std::initializer_list<Piece> pieces)
-    {
-        for(auto p : pieces)
+
+    uint16_t start;
+    uint16_t count;
+
+private:
+
+
+
+
+};
+
+[[nodiscard]] consteval static auto createMeshPiece(Mesh::Piece const m) -> std::pair<std::vector<ffm::vec3>,std::vector<uint16_t>>
+{
+
+    constexpr char shipcsv[] =
         {
-            auto mp = createMeshPiece(p);
-            for(auto& i : mp.first)
-            {
-                verts.push_back(i);
-            }
-            for(auto& i : mp.second)
-            {
-                colors.push_back(i);
-            }
+#embed "../data/meshes/ship.csv" suffix(, 0)
+        };
+    constexpr char backhighcsv[] =
+        {
+#embed "../data/meshes/backhigh.csv" suffix(, 0)
+        };
+    constexpr char backlowcsv[] =
+        {
+#embed "../data/meshes/backlow.csv" suffix(, 0)
+        };
+    constexpr char backmidcsv[] =
+        {
+#embed "../data/meshes/backmid.csv" suffix(, 0)
+        };
+    constexpr char bottomhighcsv[] =
+        {
+#embed "../data/meshes/bottomhigh.csv" suffix(, 0)
+        };
+    constexpr char bottomlowcsv[] =
+        {
+#embed "../data/meshes/bottomlow.csv" suffix(, 0)
+        };
+    constexpr char bottommidcsv[] =
+        {
+#embed "../data/meshes/bottommid.csv" suffix(, 0)
+        };
+    constexpr char fronthighcsv[] =
+        {
+#embed "../data/meshes/fronthigh.csv" suffix(, 0)
+        };
+    constexpr char frontlowcsv[] =
+        {
+#embed "../data/meshes/frontlow.csv" suffix(, 0)
+        };
+    constexpr char frontmidcsv[] =
+        {
+#embed "../data/meshes/frontmid.csv" suffix(, 0)
+        };
+    constexpr char lefthighcsv[] =
+        {
+#embed "../data/meshes/lefthigh.csv" suffix(, 0)
+        };
+    constexpr char leftlowcsv[] =
+        {
+#embed "../data/meshes/leftlow.csv" suffix(, 0)
+        };
+    constexpr char leftmidcsv[] =
+        {
+#embed "../data/meshes/leftmid.csv" suffix(, 0)
+        };
+    constexpr char righthighcsv[] =
+        {
+#embed "../data/meshes/righthigh.csv" suffix(, 0)
+        };
+    constexpr char rightlowcsv[] =
+        {
+#embed "../data/meshes/rightlow.csv" suffix(, 0)
+        };
+    constexpr char rightmidcsv[] =
+        {
+#embed "../data/meshes/rightmid.csv" suffix(, 0)
+        };
+    constexpr char tophighcsv[] =
+        {
+#embed "../data/meshes/tophigh.csv" suffix(, 0)
+        };
+    constexpr char toplowcsv[] =
+        {
+#embed "../data/meshes/toplow.csv" suffix(, 0)
+        };
+    constexpr char topmidcsv[] =
+        {
+#embed "../data/meshes/topmid.csv" suffix(, 0)
+        };
+    constexpr char tunnelhighcsv[] =
+        {
+#embed "../data/meshes/tunnelhigh.csv" suffix(, 0)
+        };
+    constexpr char tunnellowcsv[] =
+        {
+#embed "../data/meshes/tunnellow.csv" suffix(, 0)
+        };
+    constexpr char tunnelmidcsv[] =
+        {
+#embed "../data/meshes/tunnelmid.csv" suffix(, 0)
+        };
 
-        }
 
 
-
-
-    }
-
-    consteval auto size() const -> std::size_t
+    char const* csvp{shipcsv};
+    switch(m)
     {
-        return verts.size();
+    case Mesh::Piece::SHIP:
+        csvp = shipcsv;
+        break;
+    case Mesh::Piece::BACKHIGH:
+        csvp = backhighcsv;
+        break;
+    case Mesh::Piece::BACKLOW:
+        csvp = backlowcsv;
+        break;
+    case Mesh::Piece::BACKMID:
+        csvp = backmidcsv;
+        break;
+    case Mesh::Piece::BOTTOMHIGH:
+        csvp = bottomhighcsv;
+        break;
+    case Mesh::Piece::BOTTOMLOW:
+        csvp = bottomlowcsv;
+        break;
+    case Mesh::Piece::BOTTOMMID:
+        csvp = bottommidcsv;
+        break;
+    case Mesh::Piece::FRONTHIGH:
+        csvp = fronthighcsv;
+        break;
+    case Mesh::Piece::FRONTLOW:
+        csvp = frontlowcsv;
+        break;
+    case Mesh::Piece::FRONTMID:
+        csvp = frontmidcsv;
+        break;
+    case Mesh::Piece::LEFTHIGH:
+        csvp = lefthighcsv;
+        break;
+    case Mesh::Piece::LEFTLOW:
+        csvp = leftlowcsv;
+        break;
+    case Mesh::Piece::LEFTMID:
+        csvp = leftmidcsv;
+        break;
+    case Mesh::Piece::RIGHTHIGH:
+        csvp = righthighcsv;
+        break;
+    case Mesh::Piece::RIGHTLOW:
+        csvp = rightlowcsv;
+        break;
+    case Mesh::Piece::RIGHTMID:
+        csvp = rightmidcsv;
+        break;
+    case Mesh::Piece::TOPHIGH:
+        csvp = tophighcsv;
+        break;
+    case Mesh::Piece::TOPLOW:
+        csvp = toplowcsv;
+        break;
+    case Mesh::Piece::TOPMID:
+        csvp = topmidcsv;
+        break;
+    case Mesh::Piece::TUNNELHIGH:
+        csvp = tunnelhighcsv;
+        break;
+    case Mesh::Piece::TUNNELLOW:
+        csvp = tunnellowcsv;
+        break;
+    case Mesh::Piece::TUNNELMID:
+        csvp = tunnelmidcsv;
+        break;
     }
 
+
+    std::vector<double> dv = parse_csv(csvp);
+
+    std::vector<ffm::vec3> fvec;
+    std::vector<uint16_t> cvec;
+
+
+    for(std::size_t i = 0; i < dv.size(); i = i + 7)
+    {
+        ffm::fixed32 const x =  static_cast<ffm::fixed32>(dv[i+0]);
+        ffm::fixed32 const y =  static_cast<ffm::fixed32>(dv[i+1]);
+        ffm::fixed32 const z =  static_cast<ffm::fixed32>(dv[i+2]);
+        fvec.push_back({x,y,z});
+
+        auto const r = static_cast<uint8_t>(dv[i+3] * 255.0);
+        auto const g = static_cast<uint8_t>(dv[i+4] * 255.0);
+        auto const b = static_cast<uint8_t>(dv[i+5] * 255.0);
+        cvec.push_back((((r >> 3) & 31) | (((g >> 3) & 31) << 5) | (((b >> 3) & 31) << 10) ));
+
+    }
+
+
+    return {fvec,cvec};
+}
+
+[[nodiscard]] consteval static auto assembleMeshPieces(std::initializer_list<Mesh::Piece> const & pieces) -> std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>>
+{
     std::vector<ffm::vec3> verts;
     std::vector<uint16_t> colors;
-private:
 
-
-
-    [[nodiscard]] consteval static auto createMeshPiece(Piece const m) -> std::pair<std::vector<ffm::vec3>,std::vector<uint16_t>> const
+    for(auto i = 0; i < pieces.size(); ++i)
     {
-
-        constexpr char shipcsv[] =
-            {
-#embed "../data/meshes/ship.csv" suffix(, 0)
-            };
-        constexpr char flatcsv[] =
-            {
-#embed "../data/meshes/flat.csv" suffix(, 0)
-            };
-        constexpr char backhighcsv[] =
-            {
-#embed "../data/meshes/backhigh.csv" suffix(, 0)
-            };
-        constexpr char backlowcsv[] =
-            {
-#embed "../data/meshes/backlow.csv" suffix(, 0)
-            };
-        constexpr char backmidcsv[] =
-            {
-#embed "../data/meshes/backmid.csv" suffix(, 0)
-            };
-        constexpr char bottomhighcsv[] =
-            {
-#embed "../data/meshes/bottomhigh.csv" suffix(, 0)
-            };
-        constexpr char bottomlowcsv[] =
-            {
-#embed "../data/meshes/bottomlow.csv" suffix(, 0)
-            };
-        constexpr char bottommidcsv[] =
-            {
-#embed "../data/meshes/bottommid.csv" suffix(, 0)
-            };
-        constexpr char fronthighcsv[] =
-            {
-#embed "../data/meshes/fronthigh.csv" suffix(, 0)
-            };
-        constexpr char frontlowcsv[] =
-            {
-#embed "../data/meshes/frontlow.csv" suffix(, 0)
-            };
-        constexpr char frontmidcsv[] =
-            {
-#embed "../data/meshes/frontmid.csv" suffix(, 0)
-            };
-        constexpr char lefthighcsv[] =
-            {
-#embed "../data/meshes/lefthigh.csv" suffix(, 0)
-            };
-        constexpr char leftlowcsv[] =
-            {
-#embed "../data/meshes/leftlow.csv" suffix(, 0)
-            };
-        constexpr char leftmidcsv[] =
-            {
-#embed "../data/meshes/leftmid.csv" suffix(, 0)
-            };
-        constexpr char righthighcsv[] =
-            {
-#embed "../data/meshes/righthigh.csv" suffix(, 0)
-            };
-        constexpr char rightlowcsv[] =
-            {
-#embed "../data/meshes/rightlow.csv" suffix(, 0)
-            };
-        constexpr char rightmidcsv[] =
-            {
-#embed "../data/meshes/rightmid.csv" suffix(, 0)
-            };
-        constexpr char tophighcsv[] =
-            {
-#embed "../data/meshes/tophigh.csv" suffix(, 0)
-            };
-        constexpr char toplowcsv[] =
-            {
-#embed "../data/meshes/toplow.csv" suffix(, 0)
-            };
-        constexpr char topmidcsv[] =
-            {
-#embed "../data/meshes/topmid.csv" suffix(, 0)
-            };
-        constexpr char tunnelhighcsv[] =
-            {
-#embed "../data/meshes/tunnelhigh.csv" suffix(, 0)
-            };
-        constexpr char tunnellowcsv[] =
-            {
-#embed "../data/meshes/tunnellow.csv" suffix(, 0)
-            };
-        constexpr char tunnelmidcsv[] =
-            {
-#embed "../data/meshes/tunnelmid.csv" suffix(, 0)
-            };
-
-
-
-        char const* csvp{shipcsv};
-        switch(m)
-        {
-        case Piece::SHIP:
-            csvp = shipcsv;
-            break;
-        case Piece::FLAT:
-            csvp = flatcsv;
-            break;
-        case Piece::BACKHIGH:
-            csvp = backhighcsv;
-            break;
-        case Piece::BACKLOW:
-            csvp = backlowcsv;
-            break;
-        case Piece::BACKMID:
-            csvp = backmidcsv;
-            break;
-        case Piece::BOTTOMHIGH:
-            csvp = bottomhighcsv;
-            break;
-        case Piece::BOTTOMLOW:
-            csvp = bottomlowcsv;
-            break;
-        case Piece::BOTTOMMID:
-            csvp = bottommidcsv;
-            break;
-        case Piece::FRONTHIGH:
-            csvp = fronthighcsv;
-            break;
-        case Piece::FRONTLOW:
-            csvp = frontlowcsv;
-            break;
-        case Piece::FRONTMID:
-            csvp = frontmidcsv;
-            break;
-        case Piece::LEFTHIGH:
-            csvp = lefthighcsv;
-            break;
-        case Piece::LEFTLOW:
-            csvp = leftlowcsv;
-            break;
-        case Piece::LEFTMID:
-            csvp = leftmidcsv;
-            break;
-        case Piece::RIGHTHIGH:
-            csvp = righthighcsv;
-            break;
-        case Piece::RIGHTLOW:
-            csvp = rightlowcsv;
-            break;
-        case Piece::RIGHTMID:
-            csvp = rightmidcsv;
-            break;
-        case Piece::TOPHIGH:
-            csvp = tophighcsv;
-            break;
-        case Piece::TOPLOW:
-            csvp = toplowcsv;
-            break;
-        case Piece::TOPMID:
-            csvp = topmidcsv;
-            break;
-        case Piece::TUNNELHIGH:
-            csvp = tunnelhighcsv;
-            break;
-        case Piece::TUNNELLOW:
-            csvp = tunnellowcsv;
-            break;
-        case Piece::TUNNELMID:
-            csvp = tunnelmidcsv;
-            break;
-        }
-
-
-        std::vector<double> dv = parse_csv(csvp);
-
-        std::vector<ffm::vec3> fvec;
-        std::vector<uint16_t> cvec;
-
-
-        for(std::size_t i = 0; i < dv.size(); i = i + 7)
-        {
-            ffm::fixed32 const x =  static_cast<ffm::fixed32>(dv[i+0]);
-            ffm::fixed32 const y =  static_cast<ffm::fixed32>(dv[i+1]);
-            ffm::fixed32 const z =  static_cast<ffm::fixed32>(dv[i+2]);
-            fvec.push_back({x,y,z});
-
-            uint8_t const r = static_cast<uint8_t>(dv[i+3] * 255.0);
-            uint8_t const g = static_cast<uint8_t>(dv[i+4] * 255.0);
-            uint8_t const b = static_cast<uint8_t>(dv[i+5] * 255.0);
-            cvec.push_back((((r >> 3) & 31) | (((g >> 3) & 31) << 5) | (((b >> 3) & 31) << 10) ));
-
-        }
-
-
-        return {fvec,cvec};
+        auto mp = createMeshPiece(static_cast<Mesh::Piece>(i));
+        verts.insert(verts.end(), mp.first.begin(), mp.first.end());
+        colors.insert(colors.begin(), mp.second.begin(), mp.second.end());
     }
 
-};
 
-template<int N>
-class StaticMesh
+    return {verts,colors};
+}
+
+[[nodiscard]] consteval static auto applyLightingColors(std::vector<ffm::vec3> const & verts, std::vector<uint16_t> const & colors,
+                                                        ffm::vec3 const & lightdirection, ffm::vec3 lightColor) -> std::vector<uint16_t>
 {
-public:
-    consteval StaticMesh(Mesh const & mesh)
+    std::vector<uint16_t> r;
+    for(auto i = 0ul; i < verts.size(); i = i + 3)
     {
-        for(auto i = 0ul; i < N; ++i)
-        {
-            verts[i] = mesh.verts[i];
-            colors[i] = mesh.colors[i];
-        }
+        auto colv3 = util::Convert555tovec3(colors[i]);
+
+        auto norm = util::triangleNormal(verts[i+0],verts[i+1],verts[i+2]);
+        auto newcolor = util::calculateLight(norm,colv3,lightdirection,lightColor);
+        r.push_back(newcolor); r.push_back(newcolor); r.push_back(newcolor);
     }
+    return r;
+}
+
+// separate meshes for left and right side blocks?
+[[nodiscard]] consteval static auto createMeshes() -> std::tuple<std::vector<ffm::vec3>, std::vector<uint16_t>, std::vector<Mesh>>
+{
+    std::vector<ffm::vec3> verts;
+    std::vector<uint16_t> colors;
+    std::vector<Mesh> meshes;
+
+    std::vector<std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>>> assembled;
+
+    Mesh m(0,0);
+
+    m.start = m.count;
+    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPLOW}) );
+    m.count = assembled[0].first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPMID}) );
+    m.count = assembled[1].first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPHIGH}) );
+    m.count = assembled[1].first.size();
+    meshes.push_back( m );
 
 
-    std::array<ffm::vec3, N> verts;
-    std::array<uint16_t, N> colors;
 
 
-private:
 
-
-};
-
-constexpr static StaticMesh<Mesh({Mesh::Piece::SHIP}).size()> MESH_SHIP(Mesh({Mesh::Piece::SHIP}));
-constexpr static StaticMesh<Mesh({Mesh::Piece::FLAT}).size()> MESH_FLAT(Mesh({Mesh::Piece::FLAT}));
-constexpr static StaticMesh<Mesh({Mesh::Piece::FLAT}).size()> MESH_BLOCK(Mesh({Mesh::Piece::FLAT}));
+    return {verts,colors,meshes};
+}
 
 
 

@@ -7,9 +7,7 @@
 #include "mesh.hpp"
 
 
-
-//read in file, see cell has tunnel, add tunnel colors to static list, point CellMesh to colors
-//see what side is on, set 3 pointers to side MESHPIECES
+//levels load/light meshes, meshes and VB belong to level????
 
 
 class Level
