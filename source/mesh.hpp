@@ -276,37 +276,122 @@ private:
     return r;
 }
 
-// separate meshes for left and right side blocks?
+
 [[nodiscard]] consteval static auto createMeshes() -> std::tuple<std::vector<ffm::vec3>, std::vector<uint16_t>, std::vector<Mesh>>
 {
-    std::vector<ffm::vec3> verts;
-    std::vector<uint16_t> colors;
-    std::vector<Mesh> meshes;
 
-    std::vector<std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>>> assembled;
+    std::vector<Mesh> meshes;
+    std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>> assembled;
+    std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>> temp;
 
     Mesh m(0,0);
 
     m.start = m.count;
-    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPLOW}) );
-    m.count = assembled[0].first.size();
+    temp = assembleMeshPieces({Mesh::Piece::TOPLOW});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
     meshes.push_back( m );
 
     m.start = m.count;
-    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPMID}) );
-    m.count = assembled[1].first.size();
+    temp = assembleMeshPieces({Mesh::Piece::TOPMID});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
     meshes.push_back( m );
 
     m.start = m.count;
-    assembled.push_back( assembleMeshPieces({Mesh::Piece::TOPHIGH}) );
-    m.count = assembled[1].first.size();
+    temp = assembleMeshPieces({Mesh::Piece::TOPHIGH});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
     meshes.push_back( m );
 
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
 
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
 
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
 
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TUNNELLOW});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
 
-    return {verts,colors,meshes};
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TUNNELMID});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TUNNELHIGH});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    m.start = m.count;
+    temp = assembleMeshPieces({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
+    assembled.first.append_range(temp.first);
+    assembled.second.append_range(temp.second);
+    m.count = assembled.first.size();
+    meshes.push_back( m );
+
+    return {assembled.first,assembled.second,meshes};
 }
 
 

@@ -60,8 +60,12 @@ public:
         }
 
 
+
         //gen meshes and light colors here????
-        //global pos buffer, per level color buffer
+        //global pos buffer, per level color buffer?
+
+        //keep list of seen meshes, need color buffers for each cell diff color
+        std::map<uint16_t> seencolors;
 
 
     }
