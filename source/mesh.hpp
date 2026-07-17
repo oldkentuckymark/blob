@@ -11,8 +11,6 @@
 #include "util.hpp"
 
 
-//levels own meshes and creat them and light them
-
 class Vertex
 {
 public:
@@ -20,9 +18,8 @@ public:
     uint16_t color;
 };
 
-class Mesh
+namespace Mesh
 {
-public:
     enum class Piece : uint8_t
     {
         SHIP = 0,
@@ -48,12 +45,6 @@ public:
         TUNNELLOW,
         TUNNELMID,
     };
-
-
-
-    uint16_t start;
-    uint16_t count;
-
 
 
     [[nodiscard]] consteval static auto makeMeshPiece(Mesh::Piece const m) -> std::vector<Vertex>
@@ -237,7 +228,13 @@ public:
             auto const g = static_cast<uint8_t>(dv[i+4] * 255.0);
             auto const b = static_cast<uint8_t>(dv[i+5] * 255.0);
 
-            verts.push_back({{x,y,z},util::Convert888to555(r,g,b)});
+            Vertex v;
+            v.position.x = x;
+            v.position.y = y;
+            v.position.z = z;
+            v.color = util::Convert888to555(r,g,b);
+
+            verts.push_back(v);
             //cvec.push_back((((r >> 3) & 31) | (((g >> 3) & 31) << 5) | (((b >> 3) & 31) << 10) ));
 
         }
@@ -318,14 +315,10 @@ public:
         return {positions,colors};
     }
 
-    //giant global vertex and color arrays here
-
-private:
 
 
 
-
-};
+} // end Mesh
 
 
 

@@ -5,6 +5,8 @@
 
 #include "ffm.hpp"
 
+//TODO: implement interleaved rendering
+
 namespace ffr
 {
 

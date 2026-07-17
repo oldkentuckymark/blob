@@ -7,7 +7,7 @@
 #include <SDL3/SDL_render.h>
 #include <SDL3/SDL_events.h>
 #include "mesh.hpp"
-
+#include "renderer.hpp"
 
 
 class FFT
@@ -105,7 +105,7 @@ private:
 auto main() -> int
 {
 
-
+    Renderer rend;
 
     Context ctx;
     ctx.setViewPort(240,160);
@@ -188,6 +188,8 @@ auto main() -> int
         }
 
 
+        ctx.clear();
+        ctx.present();
 
     }
 
