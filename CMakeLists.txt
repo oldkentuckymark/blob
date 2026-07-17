@@ -21,8 +21,7 @@ set(BLOB_HEADERS
     source/level.hpp
     source/csv.hpp
     source/cell.hpp
-
-
+    source/renderer.hpp
 )
 
 
@@ -44,6 +43,7 @@ set(BLOB_GBA_SOURCES
 add_executable(blob-sdl
     ${BLOB_SDL_SOURCES}
     ${BLOB_HEADERS}
+
 
 
 

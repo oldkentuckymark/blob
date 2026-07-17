@@ -7,7 +7,6 @@
 #include "mesh.hpp"
 
 
-//levels load/light meshes, meshes and VB belong to level????
 
 
 class Level
@@ -23,11 +22,11 @@ public:
     {
         constexpr char level0csv[] =
         {
-            #embed "../data/levels/level.txt" suffix(, 0)
+            #embed "../data/levels/level0.txt" suffix(, 0)
         };
         constexpr char level1csv[] =
         {
-            #embed "../data/levels/level.txt" suffix(, 0)
+            #embed "../data/levels/level1.txt" suffix(, 0)
         };
 
 
@@ -49,23 +48,22 @@ public:
         auto data = parseCsvLevel(csvp);
         length_ = data.size() / LEVEL_WIDTH;
 
+        //keep list of seen meshes, need color buffers for each cell diff color
+        std::vector<uint16_t> seencolors;
+
+
         Cell * dp = &data[0];
         for(auto l = 0ul; l < length_; ++l)
         {
             for(auto w = 0ul; w < LEVEL_WIDTH; ++w)
             {
                 cells[w][l] = *dp;
+
+
                 ++dp;
             }
         }
 
-
-
-        //gen meshes and light colors here????
-        //global pos buffer, per level color buffer?
-
-        //keep list of seen meshes, need color buffers for each cell diff color
-        std::map<uint16_t> seencolors;
 
 
     }

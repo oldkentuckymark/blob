@@ -59,7 +59,15 @@ public:
 
     constexpr fixed32() = default;
 
+    constexpr explicit fixed32(int8_t const &that)
+        : data(that << FIX_SHIFT)
+    {}
+
     constexpr explicit fixed32(int16_t const &that)
+        : data(that << FIX_SHIFT)
+    {}
+
+    constexpr explicit fixed32(int32_t const &that)
         : data(that << FIX_SHIFT)
     {}
 
@@ -67,11 +75,24 @@ public:
         : data(static_cast<int32_t>(that * FIX_SCALEF))
     {}
 
+    constexpr auto operator=(int8_t const that) -> fixed32 &
+    {
+        data = that << FIX_SHIFT;
+        return (*this);
+    }
+
     constexpr auto operator=(int16_t const that) -> fixed32 &
     {
         data = that << FIX_SHIFT;
         return (*this);
     }
+
+    constexpr auto operator=(int32_t const that) -> fixed32 &
+    {
+        data = that << FIX_SHIFT;
+        return (*this);
+    }
+
 
     constexpr auto operator=(double const that) -> fixed32 &
     {
@@ -79,7 +100,11 @@ public:
         return (*this);
     }
 
+    constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
+
     constexpr explicit operator int16_t() const { return data >> FIX_SHIFT; }
+
+    constexpr explicit operator int32_t() const { return data >> FIX_SHIFT; }
 
     consteval explicit operator double() const { return data / FIX_SCALEF; }
 

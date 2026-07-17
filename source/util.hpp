@@ -70,20 +70,30 @@ namespace util
     return static_cast<uint16_t>((nr << 10) | (ng << 5) | nb);
 }
 
-[[nodiscard]] constexpr auto CreateEGAPalette() -> std::array<uint16_t, 64>
+[[nodiscard]] constexpr auto CreateEGAPalette() -> std::array<uint16_t, 16>
 {
-    std::array<uint16_t, 64> palette{};
-
-    for (std::size_t i = 0; i < 64; ++i)
+    return
     {
-        uint8_t const red   = ((i & 0x20) ? 0xAA : 0x00) | ((i & 0x04) ? 0x55 : 0x00);
-        uint8_t const green = ((i & 0x10) ? 0xAA : 0x00) | ((i & 0x02) ? 0x55 : 0x00);
-        uint8_t const blue  = ((i & 0x08) ? 0xAA : 0x00) | ((i & 0x01) ? 0x55 : 0x00);
+        Convert888to555(0X00,0X00,0X00),
+        Convert888to555(0X00,0X00,0XAA),
+        Convert888to555(0X00,0XAA,0X00),
+        Convert888to555(0X00,0XAA,0XAA),
 
-        palette[i] = Convert888to555(red, green, blue);
-    }
+        Convert888to555(0XAA,0X00,0X00),
+        Convert888to555(0XAA,0X00,0XAA),
+        Convert888to555(0XAA,0X55,0X00),
+        Convert888to555(0XAA,0XAA,0XAA),
 
-    return palette;
+        Convert888to555(0X55,0X55,0X55),
+        Convert888to555(0X55,0X55,0XFF),
+        Convert888to555(0X55,0XFF,0X55),
+        Convert888to555(0X55,0XFF,0XFF),
+
+        Convert888to555(0XFF,0X55,0X55),
+        Convert888to555(0XFF,0X55,0XFF),
+        Convert888to555(0XFF,0XFF,0X55),
+        Convert888to555(0XFF,0XFF,0XFF),
+    };
 }
 
 template<class T, std::size_t N>

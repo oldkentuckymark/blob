@@ -111,11 +111,6 @@ auto main() -> int
     ctx.setViewPort(240,160);
     ctx.setFaceCulling(1);
 
-    auto k = util::calculateLight({0.0_fx,-1.0_fx,0.0_fx},
-                                {1.0_fx,0.0_fx,1.0_fx},
-                                {0.0_fx,-1.0_fx,0.0_fx},
-                                {1.0_fx,1.0_fx,1.0_fx});
-
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
 
@@ -192,24 +187,6 @@ auto main() -> int
             c1 = std::chrono::steady_clock::now();
         }
 
-        ctx.clear();
-
-        ctx.getVertexFunction().camPos = {1.0_fx,1.5_fx,-2.8_fx};
-        ctx.getVertexFunction().rotation = ctx.getVertexFunction().rotation + ffm::vec3{-0.0003_fx,0.0000_fx,0.0000_fx};
-
-
-        ctx.setColorPointer(util::Convert888to555(255,0,0),nullptr);
-
-
-        ctx.setFaceCulling(0);
-        //ctx.setVertexPointer(3,0,(void*)MESH_SHIP.verts.data());
-        ctx.setColorPointer(k,nullptr);
-        //ctx.drawArray(ffr::DrawType::Triangles,0,MESH_SHIP.verts.size());
-        ctx.setFaceCulling(1);
-
-        //MESH_SHIP.verts[0];
-
-        ctx.present();
 
 
     }
