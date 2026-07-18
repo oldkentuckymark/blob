@@ -189,6 +189,13 @@ auto main() -> int
 
 
         ctx.clear();
+
+        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,5.0_fx};
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
+        ctx.drawArray(ffr::DrawType::Points,0,SHIPMESH2.size());
+
+
         ctx.present();
 
     }

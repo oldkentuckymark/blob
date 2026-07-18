@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstdint>
+#include <inplace_vector>
 
 #include "ffm.hpp"
 
@@ -252,7 +253,7 @@ public:
 
     virtual auto present() -> void {}
 
-    auto setVertexPointer(uint32_t size, uint32_t stride, void* vp) -> void
+    auto setVertexPointer(uint32_t const size, uint32_t const stride, void const* vp) -> void
     {
         vertex_size_ = size;
         vertex_stride_ = stride;
@@ -260,12 +261,12 @@ public:
     }
 
     //1 uint16_t per primitve
-    auto setColorPointer(uint16_t stride, uint16_t* cp)-> void
+    auto setColorPointer(uint16_t const stride, void const* cp)-> void
     {
         color_stride_ = stride;
         color_pointer_ = cp;
     }
-    auto setViewPort(int32_t w, int32_t h) -> void
+    auto setViewPort(int32_t const w, int32_t const h) -> void
     {
         viewport_width_ = w;
         viewport_height_ = h;
@@ -274,68 +275,66 @@ public:
         aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
     }
 
-    auto drawArray(DrawType dt, uint32_t first, uint32_t count) -> void
+    auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
     {
-
-        //fix color stride?
         current_draw_type_ = dt;
-        working_vertex_buffer_size_ = 0;
-        working_color_buffer_size_ = 0;
+        working_vertex_buffer_.clear();
+        working_color_buffer_.clear();
+
+        std::byte const * vp = reinterpret_cast<std::byte const *>(vertex_pointer_);
+        std::byte const * cp = reinterpret_cast<std::byte const *>(color_pointer_);
+        auto vs = vertex_stride_;
+        auto cs = color_stride_;
 
         if(vertex_size_ == 2)
         {
-            for(uint32_t i = first; i < (first+count); ++i)
+            if(vs == 0) {vs = sizeof(vec2);}
+            for(auto const * p = vp + (first*vs); p < vp + ((first+count)*vs); p = p + vs)
             {
-                working_vertex_buffer_[working_vertex_buffer_size_] =
-                {
-                    reinterpret_cast<ffm::vec2*>(vertex_pointer_)[i].x,
-                    reinterpret_cast<ffm::vec2*>(vertex_pointer_)[i].y,
-                    0.0_fx
-                };
-                ++working_vertex_buffer_size_;
+                working_vertex_buffer_.push_back( {reinterpret_cast<vec2 const*>(p)->x,reinterpret_cast<vec2 const*>(p)->y,0.0_fx} );
             }
+
         }
         else if(vertex_size_ == 3)
         {
-            for(uint32_t i = first; i < (first+count); ++i)
+            if(vs == 0) {vs = sizeof(vec3);}
+            for(auto const * p = vp + (first*vs); p < vp + ((first+count)*vs); p = p + vs)
             {
-                working_vertex_buffer_[working_vertex_buffer_size_] = reinterpret_cast<vec3*>(vertex_pointer_)[i];
-                ++working_vertex_buffer_size_;
+                working_vertex_buffer_.push_back( {reinterpret_cast<vec3 const*>(p)[0]} );
             }
+
         }
 
         //gather colors into working buffer
         if(color_pointer_ == nullptr)
         {
-            for(uint32_t i = first; i < (first + count); ++i)
+            for(auto i = 0; i < working_vertex_buffer_.size(); ++i)
             {
-                working_color_buffer_[working_color_buffer_size_] = color_stride_;
-                ++working_color_buffer_size_;
+                working_color_buffer_.push_back(color_stride_);
             }
         }
         else
         {
-            //TODO: convert all to pointer arithetic instead of indices for stride support
-
-            for(uint32_t i = first; i < (first + count); ++i)
+            if(color_stride_ == 0) {cs = sizeof(uint16_t);}
+            for(auto const * p = cp + (first*cs); p < cp + ((first+count)*cs); p = p + cs)
             {
-                working_color_buffer_[working_color_buffer_size_] = color_pointer_[i];
-                ++working_color_buffer_size_;
+                working_color_buffer_.push_back(reinterpret_cast<uint16_t const*>(p)[0]);
             }
+
         }
 
 
         //vertex_pipeline_();
 
         //run vertex function
-        for(uint32_t i = 0; i < working_vertex_buffer_size_; ++i)
+        for(uint32_t i = 0; i < working_vertex_buffer_.size(); ++i)
         {
             vf_(working_vertex_buffer_[i]);
         }
 
 
         uint32_t col = 0;
-        for(uint32_t i = 0; i < working_vertex_buffer_size_; ++i)
+        for(uint32_t i = 0; i < working_vertex_buffer_.size(); ++i)
         {
             uint16_t const & ccs{working_color_buffer_[col]};
 
@@ -721,11 +720,11 @@ private:
 
     VERTEX_FUNCTION vf_;
 
-    void* vertex_pointer_{nullptr};
+    void const* vertex_pointer_{nullptr};
     uint32_t vertex_size_{0};
     uint32_t vertex_stride_{0};
-    uint16_t* color_pointer_{nullptr};
-    uint32_t color_stride_{0};
+    void const* color_pointer_{nullptr};
+    uint16_t color_stride_{0};
     DrawType current_draw_type_{DrawType::Points};
 
     uint32_t viewport_width_{0};
@@ -734,11 +733,8 @@ private:
     fixed32 viewport_height_fx_{0.0_fx};
     fixed32 aspect_ratio_{0.0_fx};
 
-    std::array<vec3, MAX_VERTS> working_vertex_buffer_;
-    uint32_t working_vertex_buffer_size_{0};
-
-    std::array<uint16_t, MAX_VERTS> working_color_buffer_;
-    uint32_t working_color_buffer_size_{0};
+    std::inplace_vector<vec3,MAX_VERTS> working_vertex_buffer_;
+    std::inplace_vector<uint16_t,MAX_VERTS> working_color_buffer_;
 
     int32_t cull_{1};
 

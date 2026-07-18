@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <vector>
 #include <ranges>
+#include <meta>
 #include <initializer_list>
 #include "util.hpp"
 
@@ -46,6 +47,13 @@ namespace Mesh
         TUNNELMID,
     };
 
+
+    class Span
+    {
+    public:
+        unsigned offset{0};
+        unsigned count{0};
+    };
 
     [[nodiscard]] consteval static auto makeMeshPiece(Mesh::Piece const m) -> std::vector<Vertex>
     {
@@ -316,11 +324,29 @@ namespace Mesh
     }
 
 
+    [[nodiscard]] consteval static auto makeMeshes() -> std::pair<std::vector<Vertex>, std::vector<Span>>
+    {
+        std::vector<Vertex> verts;
+        std::vector<Span> spans;
+
+        //Cell::Collision::Empty
+        spans.push_back({});
+
+        //PlaneLow
+
+
+
+
+
+
+        return {verts,spans};
+    }
 
 
 } // end Mesh
 
-
+    constexpr static auto SHIPMESH = std::define_static_array(Mesh::makeMeshPiece({Mesh::Piece::SHIP}));
+constexpr static auto SHIPMESH2 = util::make_array<Vertex,Mesh::makeMeshPiece({Mesh::Piece::SHIP}).size()>(Mesh::makeMeshPiece({Mesh::Piece::SHIP}));
 
 
 #endif // MESH_HPP
