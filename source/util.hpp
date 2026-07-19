@@ -137,6 +137,10 @@ template<class T, std::size_t N>
                                  static_cast<int16_t>(newcolor.z));
 }
 
+constexpr auto combine(uint16_t const high, uint16_t const low) -> uint32_t
+{
+    return (static_cast<uint32_t>(high) << 16) | static_cast<uint32_t>(low);
+}
 
 }
 

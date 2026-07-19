@@ -689,7 +689,7 @@ private:
 
     auto project_to_ndc(vec3& p) -> void
     {
-        //p.z.data |= 0b00000000000000000000000000000001;
+        p.z.data |= 0b00000000000000000000000000000001;
         p.x = p.x * aspect_ratio_;
         p.x = p.x / p.z;
         p.y = p.y / p.z;

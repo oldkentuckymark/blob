@@ -1,6 +1,8 @@
 #ifndef LEVEL_HPP
 #define LEVEL_HPP
 
+#include <set>
+#include <flat_set>
 #include <cstdint>
 #include "util.hpp"
 #include "cell.hpp"
@@ -49,7 +51,7 @@ public:
         length_ = data.size() / LEVEL_WIDTH;
 
         //keep list of seen meshes, need color buffers for each cell diff color
-        std::vector<uint16_t> seencolors;
+        std::flat_set<uint32_t> seenColors;
 
 
         Cell * dp = &data[0];
@@ -58,11 +60,17 @@ public:
             for(auto w = 0ul; w < LEVEL_WIDTH; ++w)
             {
                 cells[w][l] = *dp;
-
+                seenColors.insert(util::combine(dp->topColor,dp->sideColor));
 
                 ++dp;
             }
         }
+
+        //generate meshes
+
+        //fisrt positions, shared for all colors
+
+        //now all color combos seen in level
 
 
 

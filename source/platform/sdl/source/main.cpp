@@ -50,11 +50,12 @@ public:
 
         in = rz;
 
-        in = in - camPos;
+        in = in + modelPos - camPos;
 
     }
 
     ffm::vec3 camPos{0.0_fx,0.0_fx,0_fx};
+    ffm::vec3 modelPos{0.0_fx,0.0_fx,0.0_fx};
     ffm::vec3 rotation{0_fx,0_fx,0_fx};
 
 };
@@ -104,6 +105,10 @@ private:
 
 auto main() -> int
 {
+
+    ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
+    ffm::vec3 p2{3.0_fx,3.0_fx,7.0_fx};
+    ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
 
     Renderer rend;
 
@@ -183,17 +188,29 @@ auto main() -> int
         c2 = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>( c2.time_since_epoch()-c1.time_since_epoch()).count() >= 16)
         {
+            p1 = p1 + ffm::vec3{0.07_fx,0.00_fx,0.07_fx};
+            //ctx.getVertexFunction().rotation.x = ctx.getVertexFunction().rotation.x + 0.004_fx;
+            //p2 = p2 + ffm::vec3{0.00_fx,0.004_fx,0.0_fx};
+            //cp = cp + ffm::vec3{0.0_fx,0.00_fx,0.00_fx};
+
             auto dt = static_cast<uint16_t>(std::chrono::duration_cast<std::chrono::milliseconds>(c2-c1).count());
             c1 = std::chrono::steady_clock::now();
         }
 
 
         ctx.clear();
-
-        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,5.0_fx};
+        ctx.getVertexFunction().camPos = cp;
+        ctx.getVertexFunction().modelPos = p1;
         ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
         ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
-        ctx.drawArray(ffr::DrawType::Points,0,SHIPMESH2.size());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
+
+
+        ctx.getVertexFunction().camPos = cp;
+        ctx.getVertexFunction().modelPos = p2;
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
 
 
         ctx.present();
