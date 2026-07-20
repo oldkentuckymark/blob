@@ -29,22 +29,23 @@
 #define IWRAM_CODE
 #endif
 
-
 class FFT
 {
 public:
+
     auto operator()(ffm::vec3& in) -> void
     {
+
         using namespace ffm;
         // Precompute sines and cosines
-        fixed32 const cx = cos(rotation.x);
-        fixed32 const sx = sin(rotation.x);
+        fixed32 const cx = cos(modelRotation.x);
+        fixed32 const sx = sin(modelRotation.x);
 
-        fixed32 const cy = cos(rotation.y);
-        fixed32 const sy = sin(rotation.y);
+        fixed32 const cy = cos(modelRotation.y);
+        fixed32 const sy = sin(modelRotation.y);
 
-        fixed32 const cz = cos(rotation.z);
-        fixed32 const sz = sin(rotation.z);
+        fixed32 const cz = cos(modelRotation.z);
+        fixed32 const sz = sin(modelRotation.z);
 
         // --- Rotate around X ---
         vec3 rx;
@@ -64,16 +65,21 @@ public:
         rz.y = ry.x * sz + ry.y * cz;
         rz.z = ry.z;
 
+
+
         in = rz;
 
-        in = in - camPos;
+        in = in + modelPos - camPos;
 
     }
 
     ffm::vec3 camPos{0.0_fx,0.0_fx,0_fx};
-    ffm::vec3 rotation{0_fx,0_fx,0_fx};
+    ffm::vec3 modelPos{0.0_fx,0.0_fx,0.0_fx};
+    ffm::vec3 modelRotation{0_fx,0_fx,0_fx};
 
 };
+\
+
 
 class Context final : public ffr::Context<FFT>
 {
@@ -134,12 +140,12 @@ private:
         if (REG_DISPCNT & 0x0010)
         {
             REG_DISPCNT &= ~(0x0010); // Show front buffer (0x06000000)
-            vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
+            //vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
         }
         else
         {
             REG_DISPCNT |= 0x0010;  // Show back buffer (0x0600A000)
-            vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
+            //vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
         }
     }
 
@@ -167,13 +173,31 @@ int main(void)
     Context ctx;
     ctx.setViewPort(160,128);
 
+    ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
+    ffm::vec3 p2{3.0_fx,3.0_fx,7.0_fx};
+    ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
+
     while (true)
     {
         bool inputs[10];
         //inputs[static_cast<uint16_t>(Game::Input::A)] = getKeyState(KEY_A);
 
         VBlankIntrWait();
+                    p1 = p1 + ffm::vec3{0.07_fx,0.00_fx,0.07_fx};
 
+        ctx.clear();
+        ctx.getVertexFunction().camPos = cp;
+        ctx.getVertexFunction().modelPos = p1;
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
+
+
+        ctx.getVertexFunction().camPos = cp;
+        ctx.getVertexFunction().modelPos = p2;
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
 
 
 

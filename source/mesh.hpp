@@ -435,4 +435,6 @@ constexpr static auto SHIPMESH = std::define_static_array(Mesh::makeMeshPiece({M
 constexpr static auto SHIPMESH2 = util::make_array<Vertex,Mesh::makeMeshPiece({Mesh::Piece::SHIP}).size()>(Mesh::makeMeshPiece({Mesh::Piece::SHIP}));
 
 
+//constexpr MESH_SPANS =
+
 #endif // MESH_HPP
