@@ -432,9 +432,8 @@ namespace Mesh
 } // end Mesh
 
 constexpr static auto SHIPMESH = std::define_static_array(Mesh::makeMeshPiece({Mesh::Piece::SHIP}));
-constexpr static auto SHIPMESH2 = util::make_array<Vertex,Mesh::makeMeshPiece({Mesh::Piece::SHIP}).size()>(Mesh::makeMeshPiece({Mesh::Piece::SHIP}));
 
-
-//constexpr MESH_SPANS =
+constexpr static auto MESH_SPANS = std::define_static_array(Mesh::makeMeshes().second);
+constexpr static auto MESH_VERTS = std::define_static_array(Mesh::splitVertexArray(Mesh::makeMeshes().first).first);
 
 #endif // MESH_HPP

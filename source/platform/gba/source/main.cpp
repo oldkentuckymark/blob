@@ -95,7 +95,7 @@ public:
 
     inline void clear() override
     {
-        for(volatile uint16_t* p = vram;p < vram+(160*128);++p)
+        for(volatile uint16_t* p = vram;p < vram+(width*height);++p)
         {
             *p = 0;
         }
@@ -108,7 +108,7 @@ public:
 
     inline void plot(int16_t x, int16_t y, uint16_t c) override
     {
-        vram[(y*160)+x] = c;
+        vram[(y*width)+x] = c;
     }
 
     inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
@@ -120,13 +120,18 @@ public:
             x1 = tmp;
         }
 
-        for(uint16_t* p = (uint16_t*)&vram[y0*160+x0]; p <= &vram[y0*160+x1]; ++p)
+        for(uint16_t* p = (uint16_t*)&vram[y0*width+x0]; p <= &vram[y0*width+x1]; ++p)
         {
             *p = color;
         }
     }
 
 private:
+    constexpr static uint16_t width = 160;
+    constexpr static uint16_t height = 128;
+
+    //uint16_t * FRONT =
+
     volatile uint16_t * vram = reinterpret_cast<uint16_t*>(0x06000000);;
 
     inline void flipPage()
@@ -140,12 +145,12 @@ private:
         if (REG_DISPCNT & 0x0010)
         {
             REG_DISPCNT &= ~(0x0010); // Show front buffer (0x06000000)
-            //vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
+            vram = reinterpret_cast<uint16_t*>(0x0600A000);  // Now draw to back buffer
         }
         else
         {
             REG_DISPCNT |= 0x0010;  // Show back buffer (0x0600A000)
-            //vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
+            vram = reinterpret_cast<uint16_t*>(0x06000000); // Now draw to front buffer
         }
     }
 
@@ -188,16 +193,16 @@ int main(void)
         ctx.clear();
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p1;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
 
 
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH2[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH2.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH2.size());
+        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
 
 
 
@@ -206,3 +211,60 @@ int main(void)
 
     return 0;
 }
+
+
+
+
+// #include <tonc.h>
+
+// // Define the two buffer addresses for Mode 5
+// #define BUF_FRONT ((u16*)0x06000000)
+// #define BUF_BACK  ((u16*)0x0600A000)
+
+// // Helper macro for 15-bit color (RGB555)
+// #define RGB5(r, g, b) ((b) << 10 | (g) << 5 | (r))
+
+// int main() {
+//     // 1. Initialize video mode: Mode 5, BG2 enabled, start showing Front Buffer
+//     // Bit 4 (DCNT_PAGE) determines which buffer is displayed (0=Front, 1=Back)
+//     REG_DISPCNT = DCNT_MODE5 | DCNT_BG2;
+
+//     u16 *draw_buffer = BUF_BACK; // We draw to the back initially
+//     int x = 80, y = 64;          // Start in center (160/2, 128/2)
+//     int dx = 1, dy = 1;          // Movement direction
+
+//     while(1) {
+//         // Wait for V-Blank to ensure smooth flipping
+//         vid_vsync();
+
+//         // 1. Clear the back buffer (fill with black)
+//         // Mode 5 resolution is 160x128 = 20,480 pixels
+//         for(int i = 0; i < 160 * 128; i++) {
+//             draw_buffer[i] = 0;
+//         }
+
+//         // 2. Draw a white pixel at current position
+//         // Index = x + (y * width)
+//         draw_buffer[x + y * 160] = RGB5(31, 31, 31);
+
+//         // 3. Update position (bounce off walls)
+//         x += dx;
+//         y += dy;
+//         if(x <= 0 || x >= 159) dx = -dx;
+//         if(y <= 0 || y >= 127) dy = -dy;
+
+//         // 4. Flip the buffers
+//         // Toggle Bit 4 of DISPCNT to swap which buffer is visible
+//         REG_DISPCNT ^= DCNT_PAGE;
+
+//         // Swap the pointer so we draw to the buffer that is now hidden
+//         if(REG_DISPCNT & DCNT_PAGE) {
+//             draw_buffer = BUF_FRONT; // Displaying Back, so draw to Front
+//         } else {
+//             draw_buffer = BUF_BACK;  // Displaying Front, so draw to Back
+//         }
+//     }
+//     return 0;
+// }
+
+
