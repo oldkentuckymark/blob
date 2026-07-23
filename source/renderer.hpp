@@ -36,7 +36,7 @@ private:
         return {{},{}};
     }
 
-    constexpr static auto verts_ = std::define_static_array(Mesh::makeMeshPiece(Mesh::Piece::TOPLOW));
+    constexpr static auto verts_{std::define_static_array(Mesh::makeMeshPiece(Mesh::Piece::TOPLOW))};
 
 };
 

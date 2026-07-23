@@ -114,7 +114,7 @@ auto main() -> int
 
     Context ctx;
     ctx.setViewPort(240,160);
-    ctx.setFaceCulling(1);
+    ctx.setFaceCulling(0);
 
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
@@ -132,7 +132,6 @@ auto main() -> int
             }
             else if(e.type == SDL_EVENT_MOUSE_MOTION)
             {
-                //cam0ref.yaw_ -= (float)e.motion.xrel / 200.f;
 
             }
         }
@@ -199,18 +198,18 @@ auto main() -> int
 
 
         ctx.clear();
-        ctx.getVertexFunction().camPos = cp;
-        ctx.getVertexFunction().modelPos = p1;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
+        //ctx.getVertexFunction().camPos = cp;
+        //ctx.getVertexFunction().modelPos = p1;
+        //ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
+        //ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
+        //ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
 
 
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
+        ctx.setColorPointer(sizeof(Vertex), &MESH_VERTS[0].color);
+        ctx.setVertexPointer(3,sizeof(Vertex),&MESH_VERTS[0].position);
+        ctx.drawArray(ffr::DrawType::Triangles,0,36);
 
 
         ctx.present();
