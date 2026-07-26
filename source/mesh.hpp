@@ -340,91 +340,91 @@ namespace Mesh
         //PlaneLow
         temp = makeMesh({Mesh::Piece::TOPLOW});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //PlaneMid
         temp = makeMesh({Mesh::Piece::TOPMID});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //PlaneHigh
         temp = makeMesh({Mesh::Piece::TOPHIGH});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //BlockLow
         temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //BlockMid
         temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //BlockHigh
         temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelLow
         temp = makeMesh({Mesh::Piece::TUNNELLOW});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelMid
         temp = makeMesh({Mesh::Piece::TUNNELMID});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelHgh
         temp = makeMesh({Mesh::Piece::TUNNELHIGH});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelPlaneLow
         temp = makeMesh({Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelPlaneMid
         temp = makeMesh({Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelPlaneHigh
         temp = makeMesh({Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelBlockLow
         temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelBlockMid
         temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         //TunnelBlockHgh
         temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
         verts.append_range(temp);
-        tempspan.offset = tempspan.count; tempspan.count = temp.size();
+        tempspan.offset += tempspan.count; tempspan.count = temp.size();
         spans.push_back( tempspan );
 
         return {verts,spans};

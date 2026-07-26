@@ -107,7 +107,7 @@ auto main() -> int
 {
 
     ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
-    ffm::vec3 p2{3.0_fx,3.0_fx,7.0_fx};
+    ffm::vec3 p2{3.0_fx,-3.0_fx,7.0_fx};
     ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
 
     Renderer rend;
@@ -203,13 +203,13 @@ auto main() -> int
         //ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
         //ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
         //ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
-
+        unsigned m = 12;
 
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
         ctx.setColorPointer(sizeof(Vertex), &MESH_VERTS[0].color);
         ctx.setVertexPointer(3,sizeof(Vertex),&MESH_VERTS[0].position);
-        ctx.drawArray(ffr::DrawType::Triangles,0,36);
+        ctx.drawArray(ffr::DrawType::Triangles,MESH_SPANS[m].offset,MESH_SPANS[m].count);
 
 
         ctx.present();
