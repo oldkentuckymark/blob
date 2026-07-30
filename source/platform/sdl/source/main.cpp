@@ -8,6 +8,7 @@
 #include <SDL3/SDL_events.h>
 #include "mesh.hpp"
 #include "renderer.hpp"
+#include "level.hpp"
 
 
 class FFT
@@ -106,11 +107,11 @@ private:
 auto main() -> int
 {
 
+    auto const * const lp = &level0;
+
     ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
     ffm::vec3 p2{3.0_fx,-3.0_fx,7.0_fx};
     ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
-
-    Renderer rend;
 
     Context ctx;
     ctx.setViewPort(240,160);
@@ -215,6 +216,8 @@ auto main() -> int
         ctx.present();
 
     }
+
+
 
 
     return 0;

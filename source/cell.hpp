@@ -1,6 +1,7 @@
 #ifndef CELL_HPP
 #define CELL_HPP
 
+#include "util.hpp"
 #include <cstdint>
 
 class Cell
@@ -24,7 +25,9 @@ public:
         TunnelPlaneHigh,
         TunnelBlockLow,
         TunnelBlockMid,
-        TunnelBlockHigh
+        TunnelBlockHigh,
+
+        NUM_COLLISIONS
     };
 
     enum class Type : uint8_t
@@ -52,8 +55,8 @@ public:
 
     Collision collision{Collision::Empty};
     Type type{Type::Normal};
-    uint16_t topColor{0};
-    uint16_t sideColor{0};
+    uint32_t topColor{0};
+    uint32_t sideColor{0};
 
 
 private:

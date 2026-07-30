@@ -1,9 +1,7 @@
 #ifndef LEVEL_HPP
 #define LEVEL_HPP
 
-#include <set>
 #include <flat_set>
-#include <flat_map>
 #include <cstdint>
 #include <meta>
 #include "util.hpp"
@@ -13,7 +11,7 @@
 struct LevelParseResult
 {
     uint16_t length;
-    std::array<std::flat_set<std::pair<uint16_t,uint16_t>>,16> seenColors;
+    std::flat_set<uint32_t> seenColors;
     std::vector<Cell> cells;
 };
 
@@ -32,8 +30,6 @@ public:
 
 
         auto result = parseCsvLevel(SL);
-        auto data = result.cells;
-
         //keep list of seen blocks, need color buffers for each cell diff color
 
 
@@ -56,25 +52,16 @@ public:
     [[nodiscard]] consteval auto getOxygen() const -> int16_t { return oxygen_; }
 
 private:
-    constexpr static int16_t length_{parseCsvLevel(SL).length};
-    int16_t oxygen_;
-    int16_t gravity_;
-
-    //switch these for horizontal rendering in order, back to front?
-    Cell cells[LEVEL_WIDTH][length_];
-
-
-
     [[nodiscard]] consteval static auto parseCsvLevel(auto sl) -> LevelParseResult
     {
         constexpr char level0csv[] =
-        {
-            #embed "../data/levels/level0.txt" suffix(, 0)
-        };
+            {
+#embed "../data/levels/level0.txt" suffix(, 0)
+            };
         constexpr char level1csv[] =
-        {
-            #embed "../data/levels/level1.txt" suffix(, 0)
-        };
+            {
+#embed "../data/levels/level1.txt" suffix(, 0)
+            };
 
         char const* csvp{level0csv};
         if(sl == "../data/levels/level0.txt")
@@ -115,7 +102,7 @@ private:
         constexpr auto palette_{util::CreateEGAPalette()};
 
         std::vector<Cell> cells;
-        std::array<std::flat_set<std::pair<uint16_t,uint16_t>>,16> seen;
+        std::flat_set<uint32_t> seenColors;
 
         char const* p = csvp;
 
@@ -125,7 +112,7 @@ private:
             Cell::Collision collision = static_cast<Cell::Collision>(num(p));
             ++p;
 
-           Cell::Type type = static_cast<Cell::Type>(num(p));
+            Cell::Type type = static_cast<Cell::Type>(num(p));
             ++p;
 
             uint16_t topcolor = num(p);
@@ -136,6 +123,8 @@ private:
 
             topcolor = palette_[topcolor];
             sidecolor = palette_[sidecolor];
+
+            seenColors.insert(util::combine(topcolor,sidecolor));
 
             cells.emplace_back(collision, type, topcolor, sidecolor);
 
@@ -152,13 +141,31 @@ private:
             for(auto w = 0ul; w < LEVEL_WIDTH; ++w)
             {
                 Cell const& c{*dp};
-                seen[static_cast<size_t>(c.collision)].insert({c.topColor,c.sideColor});
+
                 ++dp;
             }
         }
 
-        return {cells.size()/LEVEL_WIDTH,seen,cells};
+
+
+
+
+
+        return {static_cast<uint16_t>(cells.size()/LEVEL_WIDTH),seenColors,cells};
     }
+
+
+    constexpr static int16_t length_{static_cast<int16_t>(parseCsvLevel(SL).length)};
+    int16_t oxygen_;
+    int16_t gravity_;
+
+    //switch these for horizontal rendering in order, back to front?
+    Cell cells[LEVEL_WIDTH][length_];
+    std::array<uint32_t, parseCsvLevel(SL).seenColors.size()> color_buffers_{};
+
+
+
+
 
 
 
@@ -182,6 +189,11 @@ constexpr static std::span<Vertex const> MESHES[] =
     std::define_static_array(Mesh::makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID})),
     std::define_static_array(Mesh::makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH})),
 };
+
+
+constexpr static Level<"../data/levels/level0.txt"> level0(100,500);
+constexpr static Level<"../data/levels/level1.txt"> level1(100,500);
+
 
 
 #endif // LEVEL_HPP

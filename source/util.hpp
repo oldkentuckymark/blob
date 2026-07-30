@@ -147,7 +147,7 @@ struct ConstexprString
 {
     consteval ConstexprString(const char (&str)[N])
     {
-        std::copy_n(str, N, value);
+        std::ranges::copy_n(str, N, value);
     }
 
     char value[N];
@@ -157,24 +157,6 @@ struct ConstexprString
 
 
 }
-
-template< std::array<uint32_t, 256> KEYS, std::array<uint32_t, 256> VALUES >
-class ConstexprMap
-{
-public:
-    ConstexprMap()
-    {
-
-    }
-
-    constexpr auto operator[](uint32_t const key) -> uint32_t&
-    {
-
-    }
-
-private:
-    std::array<uint32_t,256> data_;
-};
 
 
 
