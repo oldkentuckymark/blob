@@ -142,7 +142,41 @@ constexpr auto combine(uint16_t const high, uint16_t const low) -> uint32_t
     return (static_cast<uint32_t>(high) << 16) | static_cast<uint32_t>(low);
 }
 
+template<size_t N>
+struct ConstexprString
+{
+    consteval ConstexprString(const char (&str)[N])
+    {
+        std::copy_n(str, N, value);
+    }
+
+    char value[N];
+
+    consteval auto operator<=>(const ConstexprString&) const = default;
+};
+
+
 }
+
+template< std::array<uint32_t, 256> KEYS, std::array<uint32_t, 256> VALUES >
+class ConstexprMap
+{
+public:
+    ConstexprMap()
+    {
+
+    }
+
+    constexpr auto operator[](uint32_t const key) -> uint32_t&
+    {
+
+    }
+
+private:
+    std::array<uint32_t,256> data_;
+};
+
+
 
 #endif // UTIL_HPP
 

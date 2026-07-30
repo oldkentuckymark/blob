@@ -102,10 +102,6 @@ public:
 
     virtual auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) -> void
     {
-        //std::cout << x0 << ", " << x1 << ", " << y0 << ", " << y1 << ", " << x2 << ", " << y2 << "\n";
-
-        // This implementation uses only 16-bit integer math (Bresenham-style)
-        // and avoids all C++ standard library functions.
         int32_t v_top_x = x0, v_top_y = y0;
         int32_t v_mid_x = x1, v_mid_y = y1;
         int32_t v_bot_x = x2, v_bot_y = y2;
@@ -260,12 +256,12 @@ public:
         vertex_pointer_= vp;
     }
 
-    //1 uint16_t per primitve
     auto setColorPointer(uint16_t const stride, void const* cp)-> void
     {
         color_stride_ = stride;
         color_pointer_ = cp;
     }
+
     auto setViewPort(int32_t const w, int32_t const h) -> void
     {
         viewport_width_ = w;

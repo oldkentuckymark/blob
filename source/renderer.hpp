@@ -25,7 +25,7 @@ public:
 
 private:
     Player * current_player_;
-    Level * current_level_;
+    //Level * current_level_;
 
 
 

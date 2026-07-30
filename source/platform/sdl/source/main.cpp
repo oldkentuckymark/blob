@@ -207,14 +207,15 @@ auto main() -> int
 
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
-        ctx.setColorPointer(sizeof(Vertex), &MESH_VERTS[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),&MESH_VERTS[0].position);
-        ctx.drawArray(ffr::DrawType::Triangles,MESH_SPANS[m].offset,MESH_SPANS[m].count);
+        //ctx.setColorPointer(sizeof(Vertex), &MESH_VERTS[0].color);
+        //ctx.setVertexPointer(3,sizeof(Vertex),&MESH_VERTS[0].position);
+        //ctx.drawArray(ffr::DrawType::Triangles,MESH_SPANS[m].offset,MESH_SPANS[m].count);
 
 
         ctx.present();
 
     }
+
 
     return 0;
 }

@@ -292,7 +292,6 @@ namespace Mesh
         };
 
         std::vector<Vertex> verts;
-        std::vector<Vertex> temp;
 
         for(auto p : pieces)
         {
@@ -434,7 +433,7 @@ namespace Mesh
 } // end Mesh
 
 
-constexpr static auto MESH_VERTS = std::define_static_array(Mesh::makeMeshes().first);
-constexpr static auto MESH_SPANS = std::define_static_array(Mesh::makeMeshes().second);
+//constexpr static auto MESH_VERTS = std::define_static_array(Mesh::makeMeshes().first);
+//constexpr static auto MESH_SPANS = std::define_static_array(Mesh::makeMeshes().second);
 
 #endif // MESH_HPP
