@@ -1,6 +1,7 @@
 #ifndef CELL_HPP
 #define CELL_HPP
 
+#include "color.hpp"
 #include "util.hpp"
 #include <cstdint>
 
@@ -55,8 +56,8 @@ public:
 
     Collision collision{Collision::Empty};
     Type type{Type::Normal};
-    uint32_t topColor{0};
-    uint32_t sideColor{0};
+    Color topColor{0};
+    Color sideColor{0};
 
 
 private:

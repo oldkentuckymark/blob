@@ -2,8 +2,10 @@
 #define LEVEL_HPP
 
 #include <flat_set>
+#include <flat_map>
 #include <cstdint>
 #include <meta>
+#include "color.hpp"
 #include "util.hpp"
 #include "cell.hpp"
 #include "mesh.hpp"
@@ -11,8 +13,30 @@
 struct LevelParseResult
 {
     uint16_t length;
-    std::flat_set<uint32_t> seenColors;
+    std::array<std::flat_set<Color>,static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)> seenColors;
     std::vector<Cell> cells;
+};
+
+template<size_t N1, size_t N2>
+struct LevelColorBuffers
+{
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> PlaneLowBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> PlaneMidBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> PlaneHighBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> BlockLowBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> BlockMidBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> BlockHighBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelLowBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelMidBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelHighBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelPlaneLowBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelPlaneMidBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelPlaneHighBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelBlockLowBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelBlockMidBuffers;
+    std::array<std::array<Color,Mesh::makeMesh({Mesh::Piece::TOPLOW}).size()>,N1> TunnelBlockHighBuffers;
+
+
 };
 
 template<util::ConstexprString SL>
@@ -30,17 +54,8 @@ public:
 
 
         auto result = parseCsvLevel(SL);
-        //keep list of seen blocks, need color buffers for each cell diff color
 
 
-
-
-
-        //generate mesh color buffers
-
-        //fisrt positions, shared for all colors
-
-        //now all color combos seen in level
 
 
 
@@ -102,10 +117,14 @@ private:
         constexpr auto palette_{util::CreateEGAPalette()};
 
         std::vector<Cell> cells;
-        std::flat_set<uint32_t> seenColors;
+
+
+        //an array of color buffers for each cell::collision??????
+
+        std::array<std::flat_set<Color>,static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)> seenColors;
+
 
         char const* p = csvp;
-
         while(*p != '\0')
         {
 
@@ -124,7 +143,7 @@ private:
             topcolor = palette_[topcolor];
             sidecolor = palette_[sidecolor];
 
-            seenColors.insert(util::combine(topcolor,sidecolor));
+            //seenBlocks.insert({collision,topcolor,sidecolor});
 
             cells.emplace_back(collision, type, topcolor, sidecolor);
 
@@ -161,17 +180,13 @@ private:
 
     //switch these for horizontal rendering in order, back to front?
     Cell cells[LEVEL_WIDTH][length_];
-    std::array<uint32_t, parseCsvLevel(SL).seenColors.size()> color_buffers_{};
-
-
-
 
 
 
 
 };
 
-constexpr static std::span<Vertex const> MESHES[] =
+constexpr static std::span<Vertex const> MESHE_VERTS[] =
 {
     std::define_static_array(Mesh::makeMesh({Mesh::Piece::TOPLOW})),
     std::define_static_array(Mesh::makeMesh({Mesh::Piece::TOPMID})),
