@@ -27,8 +27,8 @@ public:
     constexpr static uint16_t LEVEL_MAX_LENGTH{512};
 
 
-    consteval Level(int16_t const oxygen, int16_t const gravity, ffm::vec3 const sun = {0.0_fx,1.0_fx,0.0_fx}) :
-        oxygen_(oxygen), gravity_(gravity), sun_(sun)
+    consteval Level(int16_t const oxygen, int16_t const gravity, ffm::vec3 const sunVector = {0.0_fx,1.0_fx,0.0_fx}, ffm::vec3 const sunColor = {1.0_fx,1.0_fx,1.0_fx}) :
+        oxygen_(oxygen), gravity_(gravity), sun_vector_(sunVector), sun_color_(sunColor)
     {
 
         auto getIndex = [](std::flat_set<std::pair<Color,Color>> set, std::pair<Color,Color> cp) -> size_t
@@ -50,26 +50,278 @@ public:
 
 
         //make color buffers
-        constexpr size_t col = static_cast<size_t>(Cell::Collision::PlaneLow);
-        auto colorSet = result.seenColors[col];
+        auto colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneLow)];
+
+
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneLow)];
         for(auto cp : colorSet)
         {
             auto idx = getIndex(colorSet, cp);
-            PlaneLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[col].size()>
+            PlaneLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::PlaneLow)].size()>
             (
                 Mesh::splitVertexArray
                 (
-                    Mesh::applyLightingColors( Mesh::makeMesh(Mesh::getCellPieceLists()[col],cp.first,cp.second),sun_, {1.0_fx,1.0_fx,1.0_fx} )
+                    Mesh::applyLightingColors
+                    (
+                        Mesh::makeMesh
+                        (
+                            Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneLow)],cp.first,cp.second
+                        ), sun_vector_, sun_color_
+                    )
                 ).second
             );
         }
 
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneMid)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            PlaneMidBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::PlaneMid)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneMid)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneHigh)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            PlaneHighBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::PlaneHigh)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneHigh)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::BlockLow)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            BlockLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::BlockLow)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockLow)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::BlockMid)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            BlockMidBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::BlockMid)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockMid)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::BlockHigh)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            BlockHighBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::BlockHigh)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockHigh)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelLow)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelLow)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelLow)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelMid)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelMidBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelMid)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelMid)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelPlaneLow)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelPlaneLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelPlaneLow)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneLow)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelPlaneMid)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelPlaneMidBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelPlaneMid)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneMid)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelPlaneHigh)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelPlaneHighBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelPlaneHigh)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneHigh)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelBlockLow)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+         TunnelBlockLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelBlockLow)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockLow)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelBlockMid)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelBlockMidBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelBlockMid)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockMid)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
+
+        colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::TunnelBlockHigh)];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            TunnelBlockHighBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[static_cast<size_t>(Cell::Collision::TunnelBlockHigh)].size()>
+                (
+                    Mesh::splitVertexArray
+                    (
+                        Mesh::applyLightingColors
+                        (
+                            Mesh::makeMesh
+                            (
+                                Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockHigh)],cp.first,cp.second
+                                ), sun_vector_, sun_color_
+                            )
+                        ).second
+                    );
+        }
 
 
-
-
-
-        //assign each colorbufferindexfor each cell
+        //assign each colorbufferindex for each cell
         for(auto& cell : cells)
         {
 
@@ -92,7 +344,7 @@ public:
 
     [[nodiscard]] consteval auto getOxygen() const -> int16_t { return oxygen_; }
 
-    [[nodiscard]] consteval auto getSun() -> ffm::vec3 {return sun_;}
+    [[nodiscard]] consteval auto getSunVector() -> ffm::vec3 {return sun_vector_;}
 
 private:
     [[nodiscard]] consteval static auto parseCsvLevel(auto sl) -> LevelParseResult
@@ -190,7 +442,8 @@ private:
 
     int16_t oxygen_;
     int16_t gravity_;
-    ffm::vec3 sun_;
+    ffm::vec3 sun_vector_;
+    ffm::vec3 sun_color_;
 
 
 
@@ -202,9 +455,9 @@ private:
     std::array<std::array<Color,Mesh::CELL_MESHES[4].size()>,parseCsvLevel(SL).seenColors[4].size()> BlockLowBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[5].size()>,parseCsvLevel(SL).seenColors[5].size()> BlockMidBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[6].size()>,parseCsvLevel(SL).seenColors[6].size()> BlockHighBuffers{};
-    std::array<std::array<Color,Mesh::CELL_MESHES[0].size()>,parseCsvLevel(SL).seenColors[7].size()> TunnelLowBuffers{};
-    std::array<std::array<Color,Mesh::CELL_MESHES[0].size()>,parseCsvLevel(SL).seenColors[8].size()> TunnelMidBuffers{};
-    std::array<std::array<Color,Mesh::CELL_MESHES[0].size()>,parseCsvLevel(SL).seenColors[9].size()> TunnelHighBuffers{};
+    std::array<std::array<Color,Mesh::CELL_MESHES[7].size()>,parseCsvLevel(SL).seenColors[7].size()> TunnelLowBuffers{};
+    std::array<std::array<Color,Mesh::CELL_MESHES[8].size()>,parseCsvLevel(SL).seenColors[8].size()> TunnelMidBuffers{};
+    std::array<std::array<Color,Mesh::CELL_MESHES[9].size()>,parseCsvLevel(SL).seenColors[9].size()> TunnelHighBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[10].size()>,parseCsvLevel(SL).seenColors[10].size()> TunnelPlaneLowBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[11].size()>,parseCsvLevel(SL).seenColors[11].size()> TunnelPlaneMidBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[12].size()>,parseCsvLevel(SL).seenColors[12].size()> TunnelPlaneHighBuffers{};
