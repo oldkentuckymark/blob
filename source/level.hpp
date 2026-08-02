@@ -50,7 +50,19 @@ public:
 
 
         //make color buffers
-
+        constexpr size_t col = static_cast<size_t>(Cell::Collision::PlaneLow);
+        auto colorSet = result.seenColors[col];
+        for(auto cp : colorSet)
+        {
+            auto idx = getIndex(colorSet, cp);
+            PlaneLowBuffers[idx] = util::make_array<Color, Mesh::CELL_MESHES[col].size()>
+            (
+                Mesh::splitVertexArray
+                (
+                    Mesh::applyLightingColors( Mesh::makeMesh(Mesh::getCellPieceLists()[col],cp.first,cp.second),sun_, {1.0_fx,1.0_fx,1.0_fx} )
+                ).second
+            );
+        }
 
 
 
