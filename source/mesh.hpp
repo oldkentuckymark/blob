@@ -8,8 +8,10 @@
 #include <vector>
 #include <ranges>
 #include <meta>
+#include <span>
 #include <initializer_list>
 #include "util.hpp"
+#include "cell.hpp"
 
 
 class Vertex
@@ -45,6 +47,8 @@ namespace Mesh
         TUNNELHIGH,
         TUNNELLOW,
         TUNNELMID,
+
+        NUM_PIECES
     };
 
 
@@ -259,27 +263,28 @@ namespace Mesh
     }
 
 
-    [[nodiscard]] consteval static auto applyLightingColors(std::vector<Vertex> const & verts,
+    [[nodiscard]] consteval static auto applyLightingColors(std::span<Vertex const> const & verts,
                                                             ffm::vec3 const & lightdirection, ffm::vec3 lightColor) -> std::vector<Vertex>
     {
-        std::vector<Vertex> r = verts;
+        std::vector<Vertex> r; r.append_range(verts);
         for(auto i = 0ul; i < verts.size(); i = i + 3)
         {
             auto const colv3 = util::Convert555tovec3(r[i].color);
 
             auto const norm = util::triangleNormal(r[i+0].position, r[i+1].position, r[i+2].position);
             auto const newcolor = util::calculateLight(norm, colv3, lightdirection, lightColor);
+
             r[i+0].color = newcolor; r[i+1].color = newcolor; r[i+1].color = newcolor;
 
         }
         return r;
     }
 
-    [[nodiscard]] consteval static auto makeMesh(std::initializer_list<Mesh::Piece> const & pieces,
+    [[nodiscard]] consteval static auto makeMesh(std::vector<Mesh::Piece> const & pieces,
                                                         uint16_t tc = 0,
                                                         uint16_t sc = 0) -> std::vector<Vertex>
     {
-        constexpr auto hasTunnel = [](std::initializer_list<Mesh::Piece> const & pi) consteval
+        constexpr auto hasTunnel = [](std::vector<Mesh::Piece> const & pi) consteval
         {
             for(auto i : pi)
             {
@@ -315,7 +320,7 @@ namespace Mesh
         return verts;
     }
 
-    [[nodiscard]] consteval static auto splitVertexArray(std::vector<Vertex> const & verts) -> std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>>
+    [[nodiscard]] consteval static auto splitVertexArray(std::span<Vertex const> const & verts) -> std::pair<std::vector<ffm::vec3>, std::vector<uint16_t>>
     {
         std::vector<ffm::vec3> positions;
         std::vector<uint16_t> colors;
@@ -327,113 +332,146 @@ namespace Mesh
         return {positions,colors};
     }
 
-
-    [[nodiscard]] consteval static auto makeMeshes() -> std::pair<std::vector<Vertex>, std::vector<DrawSpan>>
+    [[nodiscard]] consteval static auto mergeVertexArrays(std::span<ffm::vec3> pos, std::span<uint16_t> cols) -> std::vector<Vertex>
     {
-        std::vector<Vertex> verts;
-        std::vector<DrawSpan> spans;
+        std::vector<Vertex> r;
+        for(auto i = 0ul; i < pos.size(); ++i)
+        {
+            r.push_back({pos[i], cols[i]});
+        }
+        return r;
 
-        std::vector<Vertex> temp;
-        DrawSpan tempspan;
-
-        //PlaneLow
-        temp = makeMesh({Mesh::Piece::TOPLOW});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //PlaneMid
-        temp = makeMesh({Mesh::Piece::TOPMID});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //PlaneHigh
-        temp = makeMesh({Mesh::Piece::TOPHIGH});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //BlockLow
-        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //BlockMid
-        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //BlockHigh
-        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelLow
-        temp = makeMesh({Mesh::Piece::TUNNELLOW});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelMid
-        temp = makeMesh({Mesh::Piece::TUNNELMID});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelHgh
-        temp = makeMesh({Mesh::Piece::TUNNELHIGH});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelPlaneLow
-        temp = makeMesh({Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelPlaneMid
-        temp = makeMesh({Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelPlaneHigh
-        temp = makeMesh({Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelBlockLow
-        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelBlockMid
-        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        //TunnelBlockHgh
-        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH});
-        verts.append_range(temp);
-        tempspan.offset += tempspan.count; tempspan.count = temp.size();
-        spans.push_back( tempspan );
-
-        return {verts,spans};
     }
 
 
+    consteval static auto getCellPieceLists() -> std::array<std::vector<Mesh::Piece>, static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)>
+    {
+        return
+        {
+        std::vector<Mesh::Piece>{},
+        {Mesh::Piece::TOPLOW},
+        {Mesh::Piece::TOPMID},
+        {Mesh::Piece::TOPHIGH},
+        {Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW},
+        {Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID},
+        {Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH},
+        {Mesh::Piece::TUNNELLOW},
+        {Mesh::Piece::TUNNELMID},
+        {Mesh::Piece::TUNNELHIGH},
+        {Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},
+        {Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},
+        {Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH},
+        {Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},
+        {Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},
+        {Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH}
+        };
+    }
+
+    [[nodiscard]] consteval static auto makeCellMeshes(Color const tc = 0, Color const sc = 0) -> std::array<std::vector<Vertex>, static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)>
+    {
+        std::array<std::vector<Vertex>, static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)> verts;
+        std::vector<Vertex> temp;
+
+        //Empty
+        verts[0].append_range(temp);
+
+        //PlaneLow
+        temp = makeMesh({Mesh::Piece::TOPLOW},tc,sc);
+        verts[1].append_range(temp);
+
+        //PlaneMid
+        temp = makeMesh({Mesh::Piece::TOPMID},tc,sc);
+        verts[2].append_range(temp);
+
+
+        //PlaneHigh
+        temp = makeMesh({Mesh::Piece::TOPHIGH},tc,sc);
+        verts[3].append_range(temp);
+
+
+        //BlockLow
+        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW},tc,sc);
+        verts[4].append_range(temp);
+
+
+        //BlockMid
+        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID},tc,sc);
+        verts[5].append_range(temp);
+
+
+        //BlockHigh
+        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH},tc,sc);
+        verts[6].append_range(temp);
+
+
+        //TunnelLow
+        temp = makeMesh({Mesh::Piece::TUNNELLOW},tc,sc);
+        verts[7].append_range(temp);
+
+
+        //TunnelMid
+        temp = makeMesh({Mesh::Piece::TUNNELMID},tc,sc);
+        verts[8].append_range(temp);
+
+
+        //TunnelHgh
+        temp = makeMesh({Mesh::Piece::TUNNELHIGH},tc,sc);
+        verts[9].append_range(temp);
+
+
+        //TunnelPlaneLow
+        temp = makeMesh({Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},tc,sc);
+        verts[10].append_range(temp);
+
+
+        //TunnelPlaneMid
+        temp = makeMesh({Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},tc,sc);
+        verts[11].append_range(temp);
+
+
+        //TunnelPlaneHigh
+        temp = makeMesh({Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH},tc,sc);
+        verts[12].append_range(temp);
+
+
+        //TunnelBlockLow
+        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},tc,sc);
+        verts[13].append_range(temp);
+
+
+        //TunnelBlockMid
+        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},tc,sc);
+        verts[14].append_range(temp);
+
+
+        //TunnelBlockHgh
+        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH},tc,sc);
+        verts[15].append_range(temp);
+
+        return verts;
+    }
+
+    constexpr static std::span<Vertex const> CELL_MESHES[] =
+    {
+        std::define_static_array(makeMesh(getCellPieceLists()[0])),
+        std::define_static_array(makeMesh(getCellPieceLists()[1])),
+        std::define_static_array(makeMesh(getCellPieceLists()[2])),
+        std::define_static_array(makeMesh(getCellPieceLists()[3])),
+        std::define_static_array(makeMesh(getCellPieceLists()[4])),
+        std::define_static_array(makeMesh(getCellPieceLists()[5])),
+        std::define_static_array(makeMesh(getCellPieceLists()[6])),
+        std::define_static_array(makeMesh(getCellPieceLists()[7])),
+        std::define_static_array(makeMesh(getCellPieceLists()[8])),
+        std::define_static_array(makeMesh(getCellPieceLists()[9])),
+        std::define_static_array(makeMesh(getCellPieceLists()[10])),
+        std::define_static_array(makeMesh(getCellPieceLists()[11])),
+        std::define_static_array(makeMesh(getCellPieceLists()[12])),
+        std::define_static_array(makeMesh(getCellPieceLists()[13])),
+        std::define_static_array(makeMesh(getCellPieceLists()[14])),
+        std::define_static_array(makeMesh(getCellPieceLists()[15]))
+    };
+
 } // end Mesh
 
-
-//constexpr static auto MESH_VERTS = std::define_static_array(Mesh::makeMeshes().first);
-//constexpr static auto MESH_SPANS = std::define_static_array(Mesh::makeMeshes().second);
 
 #endif // MESH_HPP

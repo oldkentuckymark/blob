@@ -46,7 +46,7 @@ public:
 
     constexpr Cell() = default;
 
-    constexpr Cell(Collision const c, Type const t, uint16_t const tc, uint16_t const sc) :
+    constexpr Cell(Collision const c, Type const t, Color const tc, Color const sc) :
         collision(c), type(t), topColor(tc), sideColor(sc)
     {
 
