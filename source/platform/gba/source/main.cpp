@@ -246,16 +246,12 @@ int main(void)
         ctx.clear();
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p1;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
+
 
 
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
-        ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
-        ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
+
 
         ctx.present();
 

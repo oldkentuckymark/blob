@@ -59,7 +59,6 @@ public:
     Color topColor{0};
     Color sideColor{0};
 
-
 private:
 
 

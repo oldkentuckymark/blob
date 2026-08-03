@@ -2,7 +2,6 @@
 #define LEVEL_HPP
 
 #include <flat_set>
-#include <flat_map>
 #include <cstdint>
 #include <meta>
 #include "color.hpp"
@@ -46,13 +45,11 @@ public:
         };
 
 
-        auto result = parseCsvLevel(SL);
+        auto const result = parseCsvLevel(SL);
 
 
         //make color buffers
-        auto colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneLow)];
-
-
+        auto colorSet = result.seenColors[0];
 
         colorSet = result.seenColors[static_cast<size_t>(Cell::Collision::PlaneLow)];
         for(auto cp : colorSet)
@@ -322,11 +319,13 @@ public:
 
 
         //assign each colorbufferindex for each cell
-        for(auto& cell : cells)
+        for(auto i = 0ul; i < result.cells.size(); ++i)
         {
-
-
-
+            Cell const& cell{cells[i]};
+            colorSet = result.seenColors[static_cast<size_t>(cell.collision)];
+            std::pair<Color,Color> cp = {cell.topColor,cell.sideColor};
+            auto idx = getIndex(colorSet,cp);
+            cellColorBufferIdxs[i] = idx;
         }
 
 
@@ -337,8 +336,9 @@ public:
 
     }
 
-    [[nodiscard]] consteval auto getCell(uint16_t w, uint16_t l) const -> Cell { return {}; }
+    [[nodiscard]] consteval auto getCell(uint16_t w, uint16_t l) const -> Cell const & { return cells[l*LEVEL_WIDTH + w]; }
 
+    [[nodiscard]] consteval auto getCellColorIndex(uint16_t w, uint16_t l) const -> uint16_t { return cellColorBufferIdxs[l*LEVEL_WIDTH + w]; }
 
     [[nodiscard]] consteval auto getLength() const -> int16_t { return length_; }
 
