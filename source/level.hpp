@@ -26,7 +26,7 @@ public:
     constexpr static uint16_t LEVEL_MAX_LENGTH{512};
 
 
-    consteval Level(int16_t const oxygen, int16_t const gravity, ffm::vec3 const sunVector = {0.0_fx,1.0_fx,0.0_fx}, ffm::vec3 const sunColor = {1.0_fx,1.0_fx,1.0_fx}) :
+    consteval Level(int16_t const oxygen, int16_t const gravity, ffm::vec3 const sunVector = {0.0_fx,-1.0_fx,0.0_fx}, ffm::vec3 const sunColor = {1.0_fx,1.0_fx,1.0_fx}) :
         oxygen_(oxygen), gravity_(gravity), sun_vector_(sunVector), sun_color_(sunColor)
     {
 
@@ -325,7 +325,8 @@ public:
             colorSet = result.seenColors[static_cast<size_t>(cell.collision)];
             std::pair<Color,Color> cp = {cell.topColor,cell.sideColor};
             auto idx = getIndex(colorSet,cp);
-            cellColorBufferIdxs[i] = idx;
+            Color const* colPtr{ getcolorBufferPointer(cell.collision, idx) };
+            cellColorBufferPtrs[i] = colPtr;
         }
 
 
@@ -336,17 +337,91 @@ public:
 
     }
 
-    [[nodiscard]] consteval auto getCell(uint16_t w, uint16_t l) const -> Cell const & { return cells[l*LEVEL_WIDTH + w]; }
+    [[nodiscard]] constexpr auto getCell(uint16_t w, uint16_t l) const -> Cell const & { return cells[l*LEVEL_WIDTH + w]; }
 
-    [[nodiscard]] consteval auto getCellColorIndex(uint16_t w, uint16_t l) const -> uint16_t { return cellColorBufferIdxs[l*LEVEL_WIDTH + w]; }
+    [[nodiscard]] constexpr auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const*
+    {
+        return cellColorBufferPtrs[l*LEVEL_WIDTH + w];
+    }
 
-    [[nodiscard]] consteval auto getLength() const -> int16_t { return length_; }
+    [[nodiscard]] constexpr auto getLength() const -> int16_t { return length_; }
 
-    [[nodiscard]] consteval auto getOxygen() const -> int16_t { return oxygen_; }
+    [[nodiscard]] constexpr auto getOxygen() const -> int16_t { return oxygen_; }
 
-    [[nodiscard]] consteval auto getSunVector() -> ffm::vec3 {return sun_vector_;}
+    [[nodiscard]] constexpr auto getSunVector() const -> ffm::vec3 {return sun_vector_;}
 
-private:
+    [[nodiscard]] consteval auto getcolorBufferPointer(Cell::Collision col, uint16_t const idx) const -> Color const*
+    {
+        Color const* cp;
+        if(col == Cell::Collision::Empty)
+        {
+            cp = EmptyBuffers[idx].data();
+        }
+        if(col == Cell::Collision::PlaneLow)
+        {
+            cp = PlaneLowBuffers[idx].data();
+        }
+        if(col == Cell::Collision::PlaneMid)
+        {
+            cp = PlaneMidBuffers[idx].data();
+        }
+        if(col == Cell::Collision::PlaneHigh)
+        {
+            cp = PlaneHighBuffers[idx].data();
+        }
+        if(col == Cell::Collision::BlockLow)
+        {
+            cp = BlockLowBuffers[idx].data();
+        }
+        if(col == Cell::Collision::BlockMid)
+        {
+            cp = BlockMidBuffers[idx].data();
+        }
+        if(col == Cell::Collision::BlockHigh)
+        {
+            cp = BlockHighBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelLow)
+        {
+            cp = TunnelLowBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelMid)
+        {
+            cp = TunnelMidBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelHigh)
+        {
+            cp = TunnelHighBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelPlaneLow)
+        {
+            cp = TunnelPlaneLowBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelPlaneMid)
+        {
+            cp = TunnelPlaneMidBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelPlaneHigh)
+        {
+            cp = TunnelPlaneHighBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelBlockLow)
+        {
+            cp = TunnelBlockLowBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelBlockMid)
+        {
+            cp = TunnelBlockMidBuffers[idx].data();
+        }
+        if(col == Cell::Collision::TunnelBlockHigh)
+        {
+            cp = TunnelBlockHighBuffers[idx].data();
+        }
+        return cp;
+    }
+
+
+//rprivate:
     [[nodiscard]] consteval static auto parseCsvLevel(auto sl) -> LevelParseResult
     {
         constexpr char level0csv[] =
@@ -447,7 +522,7 @@ private:
 
 
 
-    std::array<uint16_t,LEVEL_WIDTH * length_> cellColorBufferIdxs{};
+    std::array<Color const*,LEVEL_WIDTH * length_> cellColorBufferPtrs{nullptr};
     std::array<std::array<Color,Mesh::CELL_MESHES[0].size()>,parseCsvLevel(SL).seenColors[0].size()> EmptyBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[1].size()>,parseCsvLevel(SL).seenColors[1].size()> PlaneLowBuffers{};
     std::array<std::array<Color,Mesh::CELL_MESHES[2].size()>,parseCsvLevel(SL).seenColors[2].size()> PlaneMidBuffers{};

@@ -2,7 +2,6 @@
 #define CELL_HPP
 
 #include "color.hpp"
-#include "util.hpp"
 #include <cstdint>
 
 class Cell
@@ -41,6 +40,7 @@ public:
         Kill,
         End
     };
+
 
 
 

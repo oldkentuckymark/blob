@@ -272,9 +272,9 @@ namespace Mesh
             auto const colv3 = util::Convert555tovec3(r[i].color);
 
             auto const norm = util::triangleNormal(r[i+0].position, r[i+1].position, r[i+2].position);
-            auto const newcolor = util::calculateLight(norm, colv3, lightdirection, lightColor);
-
-            r[i+0].color = newcolor; r[i+1].color = newcolor; r[i+1].color = newcolor;
+            auto newcolor = util::calculateLight(norm, colv3, lightdirection, lightColor);
+            //newcolor = 65534;
+            r[i+0].color = newcolor; r[i+1].color = newcolor; r[i+2].color = newcolor;
 
         }
         return r;

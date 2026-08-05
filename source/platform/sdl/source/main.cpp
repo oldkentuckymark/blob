@@ -206,17 +206,21 @@ auto main() -> int
         //ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
         unsigned m = 12;
 
+
+
+        auto const& cell {level0.getCell(1,0)};
+        auto const* colp = level0.getCellColorBufferPtr(1,0);
         ctx.getVertexFunction().camPos = cp;
         ctx.getVertexFunction().modelPos = p2;
-        //ctx.setColorPointer(sizeof(Vertex), &MESH_VERTS[0].color);
-        //ctx.setVertexPointer(3,sizeof(Vertex),&MESH_VERTS[0].position);
-        //ctx.drawArray(ffr::DrawType::Triangles,MESH_SPANS[m].offset,MESH_SPANS[m].count);
+        ctx.setColorPointer(0, colp);
+        ctx.setVertexPointer(3,sizeof(Vertex),Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].size());
 
 
         ctx.present();
 
     }
-
+//color buffer ptrs not being set right
 
 
 
