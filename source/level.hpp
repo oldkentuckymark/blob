@@ -357,11 +357,11 @@ public:
     }
 
 
-    [[nodiscard]] constexpr auto getCell(uint16_t w, uint16_t l) const -> Cell const & override { return cells[l*LEVEL_WIDTH + w]; }
+    [[nodiscard]] constexpr auto getCell(uint16_t w, uint16_t l) const -> Cell const & override { return cells[w*length_ + l]; }
 
     [[nodiscard]] constexpr auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const* override
     {
-        return cellColorBufferPtrs[l*LEVEL_WIDTH + w];
+        return cellColorBufferPtrs[w*length_ + l];
     }
 
     [[nodiscard]] constexpr auto getLength() const -> int16_t override { return length_; }

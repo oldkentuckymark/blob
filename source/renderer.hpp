@@ -49,19 +49,18 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos = {0.0_fx,2.0_fx,-4.0_fx};
+        ctx.getVertexFunction().camPos = {0.0_fx,2.25_fx,-2.0_fx};
 
         for(int16_t z = current_level_->getLength() - 1; z >=0; --z)
         {
-            for(uint16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
+            for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
-                if(current_level_->getCell(x,z).collision != Cell::Collision::Empty)
-                {
-                ctx.getVertexFunction().modelPos = {ffm::fixed32(x - 3),0.0_fx,ffm::fixed32(z*2)};
+
+                ctx.getVertexFunction().modelPos = {ffm::fixed32(x-3) - 0.5_fx,0.0_fx,ffm::fixed32(z)};
                 ctx.setColorPointer(0, current_level_->getCellColorBufferPtr(x,z));
                 ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(current_level_->getCell(x,z).collision) ].data());
                 ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[ static_cast<size_t>(current_level_->getCell(x,z).collision)].size());
-                }
+
             }
         }
 
@@ -70,7 +69,7 @@ public:
         ctx.getVertexFunction().modelPos = current_player_->position;
         ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
         ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
-        //ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
+        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
 
 
 
