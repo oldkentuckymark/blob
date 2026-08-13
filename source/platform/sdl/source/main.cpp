@@ -11,7 +11,7 @@
 #include "level.hpp"
 
 
-class FFT
+class VertexFunction
 {
 public:
 
@@ -62,7 +62,7 @@ public:
 };
 
 
-class Context final : public ffr::Context<FFT>
+class Context final : public ffr::Context<VertexFunction>
 {
 public:
     Context()
@@ -109,16 +109,18 @@ auto main() -> int
 
     auto const * const lp = &level0;
 
-    ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
-    ffm::vec3 p2{3.0_fx,-3.0_fx,7.0_fx};
+    ffm::vec3 p1{-3.0_fx,-3.0_fx,3.0_fx};
+    ffm::vec3 p2{3.0_fx,-3.0_fx,3.0_fx};
     ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
 
-    Context ctx;
-    ctx.setViewPort(240,160);
-    ctx.setFaceCulling(0);
+
 
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
+
+    Renderer<Context> renderer;
+
+
 
     bool running = true;
     while (running)
@@ -198,26 +200,28 @@ auto main() -> int
         }
 
 
-        ctx.clear();
+        //ctx.clear();
         //ctx.getVertexFunction().camPos = cp;
         //ctx.getVertexFunction().modelPos = p1;
         //ctx.setColorPointer(sizeof(Vertex), &SHIPMESH[0].color);
         //ctx.setVertexPointer(3,sizeof(Vertex),SHIPMESH.data());
         //ctx.drawArray(ffr::DrawType::Triangles,0,SHIPMESH.size());
-        unsigned m = 12;
+        // unsigned m = 12;
 
 
 
-        auto const& cell {level0.getCell(1,0)};
-        auto const* colp = level0.getCellColorBufferPtr(1,0);
-        ctx.getVertexFunction().camPos = cp;
-        ctx.getVertexFunction().modelPos = p2;
-        ctx.setColorPointer(0, colp);
-        ctx.setVertexPointer(3,sizeof(Vertex),Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].size());
+        // auto const& cell {level0.getCell(1,0)};
+        // auto const* colp = level0.getCellColorBufferPtr(1,0);
+        // ctx.getVertexFunction().camPos = cp;
+        // ctx.getVertexFunction().modelPos = p2;
+        // ctx.setColorPointer(0, colp);
+        // ctx.setVertexPointer(3,sizeof(Vertex),Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].data());
+        // ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[static_cast<size_t>(cell.collision)].size());
 
 
-        ctx.present();
+        // ctx.present();
+
+        renderer.draw();
 
     }
 //color buffer ptrs not being set right

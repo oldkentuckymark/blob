@@ -451,7 +451,12 @@ namespace Mesh
         return verts;
     }
 
-    constexpr static std::span<Vertex const> CELL_MESHES[] =
+    constexpr static std::span<Vertex const> SHIP_MESH
+    {
+        std::define_static_array(makeMeshPiece(Mesh::Piece::SHIP))
+    };
+
+    constexpr static std::span<Vertex const> CELL_MESHES[]
     {
         std::define_static_array(makeMesh(getCellPieceLists()[0])),
         std::define_static_array(makeMesh(getCellPieceLists()[1])),

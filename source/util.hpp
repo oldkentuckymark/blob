@@ -123,15 +123,19 @@ template<class T, std::size_t N>
 [[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
                                             ffm::vec3 const & trianglecolor,
                                             ffm::vec3 const & lightdirection,
-                                            ffm::vec3 const & lightcolor) -> uint16_t
+                                            ffm::vec3 const & lightcolor = {1.0_fx,1.0_fx,1.0_fx},
+                                            ffm::vec3 const & ambientcolor = {0.05_fx,0.05_fx,0.05_fx}) -> uint16_t
 {
     ffm::fixed32 const factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
 
     ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
+    newcolor = newcolor + ambientcolor;
+    if(newcolor.x > 1.0_fx) {newcolor.x = 1.0_fx;}
+    if(newcolor.y > 1.0_fx) {newcolor.y = 1.0_fx;}
+    if(newcolor.z > 1.0_fx) {newcolor.z = 1.0_fx;}
+
 
     newcolor = (newcolor * 255.0_fx) + 0.5_fx;
-
-
     return util::Convert888to555(static_cast<int16_t>(newcolor.x),
                                  static_cast<int16_t>(newcolor.y),
                                  static_cast<int16_t>(newcolor.z));
@@ -145,7 +149,7 @@ constexpr auto combine(uint16_t const high, uint16_t const low) -> uint32_t
 template<size_t N>
 struct ConstexprString
 {
-    consteval ConstexprString(const char (&str)[N])
+    consteval ConstexprString(char const (&str)[N])
     {
         std::ranges::copy_n(str, N, value);
     }
