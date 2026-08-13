@@ -120,7 +120,12 @@ auto main() -> int
 
     Renderer<Context> renderer;
 
+    Player player;
 
+    renderer.setPlayer(&player);
+    renderer.setPlayerMesh(Mesh::SHIP_MESH);
+    renderer.setDrawDistance(10);
+    renderer.setLevel(&level0);
 
     bool running = true;
     while (running)

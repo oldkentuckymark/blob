@@ -17,8 +17,25 @@ struct LevelParseResult
 };
 
 
+class ILevel
+{
+public:
+    [[nodiscard]] constexpr virtual auto getCell(uint16_t w, uint16_t l) const -> Cell const &;
+
+    [[nodiscard]] constexpr virtual auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const*;
+
+    [[nodiscard]] constexpr virtual auto getLength() const -> int16_t;
+
+    [[nodiscard]] constexpr virtual auto getOxygen() const -> int16_t;
+
+    [[nodiscard]] constexpr virtual auto getSunVector() const -> ffm::vec3;
+
+    [[nodiscard]] consteval virtual auto getcolorBufferPointer(Cell::Collision col, uint16_t const idx) const -> Color const*;
+};
+
+
 template<util::ConstexprString SL>
-class Level
+class Level final : public ILevel
 {
 
 public:
@@ -337,20 +354,21 @@ public:
 
     }
 
-    [[nodiscard]] constexpr auto getCell(uint16_t w, uint16_t l) const -> Cell const & { return cells[l*LEVEL_WIDTH + w]; }
 
-    [[nodiscard]] constexpr auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const*
+    [[nodiscard]] constexpr auto getCell(uint16_t w, uint16_t l) const -> Cell const & override { return cells[l*LEVEL_WIDTH + w]; }
+
+    [[nodiscard]] constexpr auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const* override
     {
         return cellColorBufferPtrs[l*LEVEL_WIDTH + w];
     }
 
-    [[nodiscard]] constexpr auto getLength() const -> int16_t { return length_; }
+    [[nodiscard]] constexpr auto getLength() const -> int16_t override { return length_; }
 
-    [[nodiscard]] constexpr auto getOxygen() const -> int16_t { return oxygen_; }
+    [[nodiscard]] constexpr auto getOxygen() const -> int16_t override { return oxygen_; }
 
-    [[nodiscard]] constexpr auto getSunVector() const -> ffm::vec3 {return sun_vector_;}
+    [[nodiscard]] constexpr auto getSunVector() const -> ffm::vec3 override {return sun_vector_;}
 
-    [[nodiscard]] consteval auto getcolorBufferPointer(Cell::Collision col, uint16_t const idx) const -> Color const*
+    [[nodiscard]] consteval auto getcolorBufferPointer(Cell::Collision col, uint16_t const idx) const -> Color const* override
     {
         Color const* cp;
         if(col == Cell::Collision::Empty)
@@ -545,9 +563,10 @@ public:
 
 
 
-
 constexpr static Level<"../data/levels/level0.txt"> level0(100,500);
 constexpr static Level<"../data/levels/level1.txt"> level1(100,500);
+
+
 
 
 

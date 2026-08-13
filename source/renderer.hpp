@@ -6,7 +6,6 @@
 #include "player.hpp"
 #include "level.hpp"
 #include "ffr.hpp"
-#include <SDL3/SDL.h>
 
 #include <span>
 #include <meta>
@@ -42,11 +41,20 @@ public:
         current_ship_mesh_ = m;
     }
 
+    auto setLevel(ILevel const * level) -> void
+    {
+        current_level_ = level;
+    }
+
     auto draw() -> void
     {
         ctx.clear();
 
-
+        ctx.getVertexFunction().camPos = {0.0_fx,0.0_fx,0.0_fx};
+        ctx.getVertexFunction().modelPos = {3.0_fx,-3.0_fx,3.0_fx};
+        ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
+        ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
+        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
 
 
         ctx.present();
@@ -55,7 +63,9 @@ public:
 private:
     Context ctx;
 
-    uint16_t draw_distance_{10};
+    uint16_t draw_distance_{0};
+
+    ILevel const * current_level_{nullptr};
 
     Player* current_player_{nullptr};
     std::span<Vertex const> current_ship_mesh_{};
