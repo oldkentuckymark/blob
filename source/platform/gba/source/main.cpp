@@ -237,20 +237,13 @@ int main(void)
 
     while (true)
     {
-        bool inputs[10];
+        bool inputs[10] = {};
         //inputs[static_cast<uint16_t>(Game::Input::A)] = getKeyState(KEY_A);
 
 
-        p1 = p1 + ffm::vec3{0.07_fx,0.00_fx,0.07_fx};
+
 
         ctx.clear();
-        ctx.getVertexFunction().camPos = cp;
-        ctx.getVertexFunction().modelPos = p1;
-
-
-
-        ctx.getVertexFunction().camPos = cp;
-        ctx.getVertexFunction().modelPos = p2;
 
 
         ctx.present();

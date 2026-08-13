@@ -20,6 +20,9 @@ struct LevelParseResult
 class ILevel
 {
 public:
+    constexpr static uint16_t LEVEL_WIDTH{7};
+    constexpr static uint16_t LEVEL_MAX_LENGTH{512};
+
     [[nodiscard]] constexpr virtual auto getCell(uint16_t w, uint16_t l) const -> Cell const &;
 
     [[nodiscard]] constexpr virtual auto getCellColorBufferPtr(uint16_t w, uint16_t l) const -> Color const*;
@@ -39,8 +42,7 @@ class Level final : public ILevel
 {
 
 public:
-    constexpr static uint16_t LEVEL_WIDTH{7};
-    constexpr static uint16_t LEVEL_MAX_LENGTH{512};
+
 
 
     consteval Level(int16_t const oxygen, int16_t const gravity, ffm::vec3 const sunVector = {0.0_fx,-1.0_fx,0.0_fx}, ffm::vec3 const sunColor = {1.0_fx,1.0_fx,1.0_fx}) :
