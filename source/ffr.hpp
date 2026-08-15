@@ -17,16 +17,26 @@ using namespace ffm;
 enum class DrawType : uint32_t
 {
     Points = 1,
-    Lines = 2,
-    Triangles = 3,
-    TrianglesWireFrame = 4
+    Lines,
+    Triangles,
+    TrianglesWireFrame,
+    Quads,
+    QuadsWireFra
+};
+
+enum class FaceCullMode : int32_t
+{
+    Back = -1,
+    None = 0,
+    Front = 1,
+    All = 2
 };
 
 
 template<class VERTEX_FUNCTION>
 class Context
 {
-    static constexpr std::size_t MAX_VERTS{128};
+    static constexpr size_t MAX_VERTS{128};
 
 public:
     Context() = default;
@@ -245,6 +255,11 @@ public:
         }
     }
 
+    virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
+    {
+
+    }
+
     virtual auto clear() -> void {}
 
     virtual auto present() -> void {}
@@ -262,7 +277,7 @@ public:
         color_pointer_ = cp;
     }
 
-    auto setViewPort(int32_t const w, int32_t const h) -> void
+    auto setViewPort(int16_t const w, int16_t const h) -> void
     {
         viewport_width_ = w;
         viewport_height_ = h;
@@ -338,27 +353,14 @@ public:
             if(current_draw_type_ == DrawType::Points)
             {
                 vec3& cvs = working_vertex_buffer_[i];
-                project_to_ndc(cvs);
-                to_screen_space(cvs);
 
-                if(clip_point_screen_space(cvs))
-                {
-                    plot(static_cast<int16_t>(cvs.x), static_cast<int16_t>(cvs.y), ccs);
-                }
                 col = col + 1;
             }
             else if(current_draw_type_ == DrawType::Lines)
             {
                 vec3& p0{working_vertex_buffer_[i]};
                 vec3& p1{working_vertex_buffer_[i+1]};
-                project_to_ndc(p0); project_to_ndc(p1);
-                to_screen_space(p0); to_screen_space(p1);
 
-                if(clip_line_screen_space(p0, p1))
-                {
-                    line(static_cast<int16_t>(p0.x), static_cast<int16_t>(p0.y),
-                         static_cast<int16_t>(p1.x), static_cast<int16_t>(p1.y), ccs);
-                }
                 i = i + 1;;
                 col = col + 2;
             }
