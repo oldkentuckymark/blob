@@ -102,7 +102,7 @@ public:
 
     constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
 
-    constexpr explicit operator int16_t() const { return data >> FIX_SHIFT; }
+    constexpr operator int16_t() const { return data >> FIX_SHIFT; }
 
     constexpr explicit operator int32_t() const { return data >> FIX_SHIFT; }
 
@@ -361,21 +361,43 @@ consteval auto makeInvsqrtTable() -> LUT
     return (n > 0.0_fx) ? n : -n;
 }
 
-[[nodiscard]] constexpr auto sqrt(fixed32 const n) -> fixed32
+constexpr auto sqrt(fixed32 const x) -> fixed32
 {
-    static constexpr LUT INVSQRTTABLE = makeInvsqrtTable();
+    fixed32 r;
+    if (x.data <= 0) {return r;}
 
-    if consteval
-    {
-        double const d = std::sqrt(static_cast<double>(n));
+    using wide_t = int64_t;
 
-        return fixed32{d};
-    }
-    else
+    wide_t n = static_cast<wide_t>(x.data) << fixed32::FIX_SHIFT;
+
+    wide_t result = 0;
+    wide_t bit = wide_t{1} << 30;
+
+    // Find the largest power of 4 <= n.
+    while (bit > n)
     {
-        return 0.0_fx;
-        //return INVSQRTTABLE[static_cast<int16_t>(n)];
+        bit >>= 2;
     }
+
+    // Integer square root (binary restoring algorithm).
+    while (bit != 0)
+    {
+        if (n >= result + bit)
+        {
+            n -= result + bit;
+            result = (result >> 1) + bit;
+        }
+        else
+        {
+            result >>= 1;
+        }
+
+        bit >>= 2;
+    }
+
+
+    r.data = static_cast<int32_t>(result);
+    return r;
 }
 
 class vec2
@@ -478,6 +500,14 @@ public:
         const auto sum = x2 + y2 + z2;
         return sqrt(sum);
     }
+
+    [[nodiscard]] constexpr auto normalize() const -> vec3
+    {
+        auto const l = this->length();
+        return {this->x / l, this->y / l, this->z / l};
+    }
+
+
 };
 
 class vec4 : public vec3

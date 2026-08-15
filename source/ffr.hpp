@@ -269,6 +269,7 @@ public:
         viewport_width_fx_ = static_cast<int16_t>(w);
         viewport_height_fx_ = static_cast<int16_t>(h);
         aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
+        frustrum_ = ComputeFrustumPlanesAsVec4();
     }
 
     auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
@@ -366,22 +367,20 @@ public:
                 vec3& v0{working_vertex_buffer_[i]};
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
-                project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
+
 
                 if(is_cull_passing(v0, v1, v2))
                 {
-                    to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
-
-                    std::array<vec3, 15> arr;
-                    auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
-
-
-                    for(auto i = 0ul; i < k; i = i + 3)
+                    std::array<vec3, 3*(3+4)> vertArr;
+                    auto vertCount = ClipAndTriangulateConvexPolygon<3>({v0,v1,v2}, vertArr);
+                    for(auto j = 0; j < vertCount; j = j + 3)
                     {
-                        triangle(static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y),
-                            static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y),
-                            static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y), ccs);
+                        project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);
+                        to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);
+
+                        triangle( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, ccs);
                     }
+
                 }
 
 
@@ -395,29 +394,6 @@ public:
                 vec3& v0{working_vertex_buffer_[i]};
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
-                project_to_ndc(v0);project_to_ndc(v1);project_to_ndc(v2);
-
-                if(is_cull_passing(v0, v1, v2))
-                {
-                    to_screen_space(v0);to_screen_space(v1);to_screen_space(v2);
-
-                    std::array<vec3, 15> arr;
-                    auto k = clipAndTriangulateTriangle(v0,v1,v2,arr);
-
-
-                    for(auto i = 0ul; i < k; i = i + 3)
-                    {
-                        line( static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y),
-                            static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y), ccs );
-
-                        line( static_cast<int16_t>(arr[i+1].x), static_cast<int16_t>(arr[i+1].y),
-                             static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y), ccs );
-
-                        line( static_cast<int16_t>(arr[i+2].x), static_cast<int16_t>(arr[i+2].y),
-                            static_cast<int16_t>(arr[i].x), static_cast<int16_t>(arr[i].y), ccs);
-                    }
-                }
-
 
 
 
@@ -442,135 +418,77 @@ public:
 
 private:
 
-    auto clipAndTriangulateTriangle(
-        const vec3& A,
-        const vec3& B,
-        const vec3& C,
-        std::array<vec3,15>& outVerts) -> int
+    template <std::size_t N>
+    std::size_t ClipAndTriangulateConvexPolygon( const std::array<vec3, N>& polygon, std::array<vec3, 3 * (N + 4)>& outVerts) const
     {
-        const auto left   = 0.0_fx;
-        const auto right  = viewport_width_fx_;
-        const auto bottom = 0.0_fx;
-        const auto top    = viewport_height_fx_;
+        // A polygon can gain at most one vertex per clipping plane.
+        std::array<vec3, N + 6> current{};
+        std::array<vec3, N + 6> next{};
 
-        std::array<vec3,7> poly{};
-        std::array<vec3,7> temp{};
-        int polyCount = 3;
+        std::size_t currentCount = N;
 
-        // Input (no asserts)
-        poly[0] = A;
-        poly[1] = B;
-        poly[2] = C;
+        for (std::size_t i = 0; i < N; ++i)
+            current[i] = polygon[i];
 
-        auto inside = [&](const vec2& p, int edge) {
-            switch (edge) {
-            case 0: return p.x >= left;   // LEFT
-            case 1: return p.x <= right;  // RIGHT
-            case 2: return p.y >= bottom; // BOTTOM
-            case 3: return p.y <= top;    // TOP
+        auto clipPlane = [&](const vec4& plane)
+        {
+            std::size_t nextCount = 0;
+
+            for (std::size_t i = 0; i < currentCount; ++i)
+            {
+                const vec3& curr = current[i];
+                const vec3& prev = current[(i + currentCount - 1) % currentCount];
+
+                const fixed32 dCurr =
+                    plane.x * curr.x +
+                    plane.y * curr.y +
+                    plane.z * curr.z +
+                    plane.w;
+
+                const fixed32 dPrev =
+                    plane.x * prev.x +
+                    plane.y * prev.y +
+                    plane.z * prev.z +
+                    plane.w;
+
+                const bool currIn = dCurr >= 0.0_fx;
+                const bool prevIn = dPrev >= 0.0_fx;
+
+                if (currIn != prevIn)
+                {
+                    const fixed32 t = dPrev / (dPrev - dCurr);
+                    next[nextCount++] = prev + (curr - prev) * t;
+                }
+
+                if (currIn)
+                    next[nextCount++] = curr;
             }
-            return false;
+
+            current = next;
+            currentCount = nextCount;
         };
 
-        auto intersect = [&](const vec3& P, const vec3& Q, int edge) {
-            vec2 p(P.x, P.y);
-            vec2 q(Q.x, Q.y);
-            vec2 d = q - p;
+        // Clip against all six global frustum planes.
+        for (const vec4& plane : frustrum_)
+        {
+            clipPlane(plane);
 
-            auto t = 0.0_fx;
-
-            switch (edge) {
-            case 0: t = (left   - p.x) / d.x; break;
-            case 1: t = (right  - p.x) / d.x; break;
-            case 2: t = (bottom - p.y) / d.y; break;
-            case 3: t = (top    - p.y) / d.y; break;
-            }
-
-            vec2 xy = p + d * t;
-            auto z = P.z + (Q.z - P.z) * t;
-
-            return vec3{xy.x, xy.y, z};
-        };
-
-        // ------------------------------
-        // Sutherland–Hodgman clipping
-        // ------------------------------
-        for (int edge = 0; edge < 4; ++edge) {
-            if (polyCount == 0)
+            if (currentCount == 0)
                 return 0;
-
-            int tempCount = 0;
-
-            for (int i = 0; i < polyCount; ++i) {
-                vec3 P = poly[i];
-                vec3 Q = poly[(i + 1) % polyCount];
-
-                vec2 p2(P.x, P.y);
-                vec2 q2(Q.x, Q.y);
-
-                bool Pin = inside(p2, edge);
-                bool Qin = inside(q2, edge);
-
-                if (Pin && Qin) {
-                    temp[tempCount++] = Q;
-                }
-                else if (Pin && !Qin) {
-                    temp[tempCount++] = intersect(P, Q, edge);
-                }
-                else if (!Pin && Qin) {
-                    temp[tempCount++] = intersect(P, Q, edge);
-                    temp[tempCount++] = Q;
-                }
-            }
-
-            polyCount = tempCount;
-            for (int i = 0; i < tempCount; ++i)
-                poly[i] = temp[i];
         }
 
-        if (polyCount < 3)
+        // --- Triangulate clipped polygon ---
+        if (currentCount < 3)
             return 0;
 
-        // ------------------------------
-        // Triangulation
-        // ------------------------------
-        int outCount = 0;
+        std::size_t outCount = 0;
+        const vec3& anchor = current[0];
 
-        if (polyCount == 3) {
-            outVerts[0] = poly[0];
-            outVerts[1] = poly[1];
-            outVerts[2] = poly[2];
-            outCount = 3;
-        }
-        else {
-            for (int i = 1; i < polyCount - 1; ++i) {
-                outVerts[outCount++] =
-                    poly[0];
-                outVerts[outCount++] = poly[i];
-                outVerts[outCount++] = poly[i + 1];
-            }
-        }
-
-        // ------------------------------
-        // FINAL CLAMP (guarantees safety)
-        // ------------------------------
-        for (int i = 0; i < outCount; ++i) {
-            auto &v = outVerts[i];
-
-            if (v.x < left)   v.x = left;
-            if (v.y < bottom) v.y = bottom;
-            if (v.x > right)  v.x = right;
-            if (v.y > top)    v.y = top;
-        }
-
-        // ------------------------------
-        // FINAL ASSERTS (only here)
-        // ------------------------------
-        for (int i = 0; i < outCount; ++i) {
-            assert(outVerts[i].x >= 0.0_fx);
-            assert(outVerts[i].y >= 0.0_fx);
-            assert(outVerts[i].x <= viewport_width_fx_);
-            assert(outVerts[i].y <= viewport_height_fx_);
+        for (std::size_t i = 1; i + 1 < currentCount; ++i)
+        {
+            outVerts[outCount++] = anchor;
+            outVerts[outCount++] = current[i];
+            outVerts[outCount++] = current[i + 1];
         }
 
         return outCount;
@@ -685,7 +603,7 @@ private:
 
     auto project_to_ndc(vec3& p) -> void
     {
-        p.z.data |= 0b00000000000000000000000000000001;
+        //p.z.data |= 0b00000000000000000000000000000001;
         p.x = p.x * aspect_ratio_;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
@@ -714,6 +632,80 @@ private:
         p.y = sy * viewport_height_fx_;
     }
 
+
+    constexpr std::array<vec4, 6> ComputeFrustumPlanesAsVec4(
+        fixed32 nearZ = 0.001_fx,
+        fixed32 farZ  = 1000.0_fx)
+    {
+        std::array<vec4, 6> planes{};
+
+        // 90° vertical FOV:
+        //
+        // tan(FOV_Y / 2) = tan(45°) = 1
+        //
+        // Therefore:
+        //
+        //   x = +/- z * aspect_ratio_
+        //   y = +/- z
+        //
+        // Plane normalization is unnecessary for clipping; only the
+        // sign of the plane equation matters.
+
+        // LEFT:   x >= -z * aspect
+        //         aspect*x + z >= 0
+        planes[0] = vec4{
+            aspect_ratio_,
+            fixed32(0),
+            fixed32(1),
+            fixed32(0)
+        };
+
+        // RIGHT:  x <= z * aspect
+        //         -aspect*x + z >= 0
+        planes[1] = vec4{
+            -aspect_ratio_,
+            fixed32(0),
+            fixed32(1),
+            fixed32(0)
+        };
+
+        // BOTTOM: y >= -z
+        //         y + z >= 0
+        planes[2] = vec4{
+            fixed32(0),
+            fixed32(1),
+            fixed32(1),
+            fixed32(0)
+        };
+
+        // TOP:    y <= z
+        //         -y + z >= 0
+        planes[3] = vec4{
+            fixed32(0),
+            fixed32(-1),
+            fixed32(1),
+            fixed32(0)
+        };
+
+        // NEAR:   z >= nearZ
+        planes[4] = vec4{
+            fixed32(0),
+            fixed32(0),
+            fixed32(1),
+            -nearZ
+        };
+
+        // FAR:    z <= farZ
+        planes[5] = vec4{
+            fixed32(0),
+            fixed32(0),
+            fixed32(-1),
+            farZ
+        };
+
+        return planes;
+    }
+
     VERTEX_FUNCTION vf_;
 
     void const* vertex_pointer_{nullptr};
@@ -734,15 +726,8 @@ private:
 
     int32_t cull_{1};
 
-    static constexpr vec4 frustrum_[6] =
-    {
-        {0.0_fx,0.0_fx,1.0_fx, -0.01_fx},
-        {0.707106781187_fx,0.0_fx,0.707106781187_fx, 0.0_fx},
-        {-0.707106781187_fx,0.0_fx,0.707106781187_fx,0.0_fx},
-        {0.0_fx,0.707106781187_fx,0.707106781187_fx,0.0_fx},
-        {0.0_fx,-0.707106781187_fx,0.707106781187_fx,0.0_fx},
-        {0.0_fx,0.0_fx,-1.0_fx, -1000.0_fx}
-    };
+    std::array<vec4, 6> frustrum_;
+
 
 
 };

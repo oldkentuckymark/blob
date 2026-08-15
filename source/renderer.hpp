@@ -49,7 +49,7 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos = {0.0_fx,2.25_fx,-2.0_fx};
+        ctx.getVertexFunction().camPos = {0.0_fx,1.3_fx,0.3_fx};
 
         for(int16_t z = current_level_->getLength() - 1; z >=0; --z)
         {
