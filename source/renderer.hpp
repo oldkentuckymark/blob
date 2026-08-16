@@ -18,7 +18,7 @@ public:
     Renderer()
     {
         ctx.setViewPort(160,128);
-        ctx.setFaceCulling(1);
+        ctx.setFaceCulling(0);
         ctx.getVertexFunction().camPos = {0_fx,1.3_fx,-1.3_fx};
     }
 
