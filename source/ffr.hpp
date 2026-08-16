@@ -256,6 +256,110 @@ public:
     virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
     {
 
+        const int xs[4] = {x0, x1, x2, x3};
+        const int ys[4] = {y0, y1, y2, y3};
+
+        // 1. Find Top Vertex (min Y)
+        int top = 0;
+        for (int i = 1; i < 4; ++i) {
+            if (ys[i] < ys[top]) top = i;
+        }
+
+        // 2. Setup Edge Walkers (Left=Backward, Right=Forward)
+        // Left Chain Indices: top -> top-1 -> top-2
+        int l_curr = top;
+        int l_next = (top - 1 + 4) % 4;
+        // Right Chain Indices: top -> top+1 -> top+2
+        int r_curr = top;
+        int r_next = (top + 1) % 4;
+
+        // Edge State Variables (Left)
+        int lx = xs[l_curr], ly = ys[l_curr];
+        int ldx = xs[l_next] - lx, ldy = ys[l_next] - ly;
+        int l_err = (ldy > 0) ? ldy / 2 : 0;
+        int l_x_inc = (ldx >= 0) ? 1 : -1;
+        int l_num = ffm::abs(ldx), l_den = ffm::abs(ldy);
+        int l_y_max = ys[l_next];
+
+        // Edge State Variables (Right)
+        int rx = xs[r_curr], ry = ys[r_curr];
+        int rdx = xs[r_next] - rx, rdy = ys[r_next] - ry;
+        int r_err = (rdy > 0) ? rdy / 2 : 0;
+        int r_x_inc = (rdx >= 0) ? 1 : -1;
+        int r_num = ffm::abs(rdx), r_den = ffm::abs(rdy);
+        int r_y_max = ys[r_next];
+
+        // Skip horizontal start edges if any
+        while (l_den == 0) {
+            l_curr = l_next; l_next = (l_curr - 1 + 4) % 4;
+            lx = xs[l_curr]; ly = ys[l_curr];
+            ldx = xs[l_next] - lx; ldy = ys[l_next] - ly;
+            l_err = (ldy > 0) ? ldy / 2 : 0; l_x_inc = (ldx >= 0) ? 1 : -1;
+            l_num = ffm::abs(ldx); l_den = ffm::abs(ldy); l_y_max = ys[l_next];
+        }
+        while (r_den == 0) {
+            r_curr = r_next; r_next = (r_curr + 1) % 4;
+            rx = xs[r_curr]; ry = ys[r_curr];
+            rdx = xs[r_next] - rx; rdy = ys[r_next] - ry;
+            r_err = (rdy > 0) ? rdy / 2 : 0; r_x_inc = (rdx >= 0) ? 1 : -1;
+            r_num = ffm::abs(rdx); r_den = ffm::abs(rdy); r_y_max = ys[r_next];
+        }
+
+        int scan_y = ffm::max(ly, ry);
+        int end_y = ffm::max(ys[0], ffm::max(ys[1], ffm::max(ys[2], ys[3])));
+
+        // 3. Scanline Loop
+        while (scan_y <= end_y) {
+            // Draw span
+            if (lx <= rx) lineHorizontal(lx, scan_y, rx, color);
+            else lineHorizontal(rx, scan_y, lx, color);
+
+            scan_y++;
+
+            // Step Left Edge
+            if (ly < l_y_max) {
+                l_err += l_num;
+                if (l_err >= l_den) { lx += l_x_inc; l_err -= l_den; }
+                ly++;
+            } else {
+                // Switch to next segment on Left
+                l_curr = l_next; l_next = (l_curr - 1 + 4) % 4;
+                lx = xs[l_curr]; ly = ys[l_curr];
+                ldx = xs[l_next] - lx; ldy = ys[l_next] - ly;
+                l_err = (ldy > 0) ? ldy / 2 : 0; l_x_inc = (ldx >= 0) ? 1 : -1;
+                l_num = ffm::abs(ldx); l_den = ffm::abs(ldy); l_y_max = ys[l_next];
+                // Fast forward if needed (shouldn't be for convex)
+                while (ly < scan_y && l_den > 0) {
+                    l_err += l_num; if (l_err >= l_den) { lx += l_x_inc; l_err -= l_den; }
+                    ly++;
+                }
+            }
+
+            // Step Right Edge
+            if (ry < r_y_max) {
+                r_err += r_num;
+                if (r_err >= r_den) { rx += r_x_inc; r_err -= r_den; }
+                ry++;
+            } else {
+                // Switch to next segment on Right
+                r_curr = r_next; r_next = (r_curr + 1) % 4;
+                rx = xs[r_curr]; ry = ys[r_curr];
+                rdx = xs[r_next] - rx; rdy = ys[r_next] - ry;
+                r_err = (rdy > 0) ? rdy / 2 : 0; r_x_inc = (rdx >= 0) ? 1 : -1;
+                r_num = ffm::abs(rdx); r_den = ffm::abs(rdy); r_y_max = ys[r_next];
+                while (ry < scan_y && r_den > 0) {
+                    r_err += r_num; if (r_err >= r_den) { rx += r_x_inc; r_err -= r_den; }
+                    ry++;
+                }
+            }
+
+            // Termination check
+            if ((l_den == 0 || ly >= l_y_max) && (r_den == 0 || ry >= r_y_max)) {
+                // Check if both are at the very bottom vertex
+                if (ly >= end_y && ry >= end_y) break;
+            }
+        }
+
     }
 
     virtual auto clear() -> void {}
@@ -378,7 +482,7 @@ public:
                         to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);
                         triangle( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, ccs );
                     }
-                    }
+                }
                 i = i + 2;
                 col = col + 3;
             }
@@ -490,7 +594,7 @@ private:
     [[nodiscard]] auto clip_point_screen_space(vec3 const & p) -> bool
     {
         return !(p.x < 0.0_fx || p.x >= viewport_width_fx_ ||
-                p.y < 0.0_fx || p.y >= viewport_height_fx_ );
+                 p.y < 0.0_fx || p.y >= viewport_height_fx_ );
     }
 
     [[nodiscard]] auto clip_line_screen_space(vec3 &p0, vec3 &p1) -> bool
