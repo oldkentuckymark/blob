@@ -19,6 +19,7 @@ public:
     {
         ctx.setViewPort(240,160);
         ctx.setFaceCulling(0);
+        ctx.getVertexFunction().camPos = {-2.0_fx,1.3_fx,-1.3_fx};
     }
 
     ~Renderer()
@@ -49,7 +50,7 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos = {0.0_fx,1.3_fx,0.3_fx};
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0001_fx;
 
         for(int16_t z = current_level_->getLength() - 1; z >=0; --z)
         {
@@ -69,7 +70,7 @@ public:
         ctx.getVertexFunction().modelPos = current_player_->position;
         ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
         ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
+        //ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
 
 
 

@@ -124,9 +124,11 @@ template<class T, std::size_t N>
                                             ffm::vec3 const & trianglecolor,
                                             ffm::vec3 const & lightdirection,
                                             ffm::vec3 const & lightcolor = {1.0_fx,1.0_fx,1.0_fx},
-                                            ffm::vec3 const & ambientcolor = {0.05_fx,0.05_fx,0.05_fx}) -> uint16_t
+                                            ffm::vec3 const & ambientcolor = {0.15_fx,0.15_fx,0.15_fx}) -> uint16_t
 {
-    ffm::fixed32 const factor = ffm::max(ffm::vec3::dot(normal, lightdirection), 0.0_fx);
+    auto d = ffm::vec3::dot(normal, lightdirection);
+    if(d < 0.0_fx) { d = -d;}
+    ffm::fixed32 const factor = d;
 
     ffm::vec3 newcolor = ((trianglecolor * lightcolor) * factor);
     newcolor = newcolor + ambientcolor;
