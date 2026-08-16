@@ -273,7 +273,6 @@ namespace Mesh
 
             auto const norm = util::triangleNormal(r[i+0].position, r[i+1].position, r[i+2].position);
             auto newcolor = util::calculateLight(norm, colv3, lightdirection, lightColor);
-            //newcolor = 65534;
             r[i+0].color = newcolor; r[i+1].color = newcolor; r[i+2].color = newcolor;
 
         }
@@ -311,7 +310,6 @@ namespace Mesh
             {
                 c = tc;
             }
-
             verts.append_range(makeMeshPiece(p,c));
 
         }
@@ -367,89 +365,6 @@ namespace Mesh
         };
     }
 
-    [[nodiscard]] consteval static auto makeCellMeshes(Color const tc = 0, Color const sc = 0) -> std::array<std::vector<Vertex>, static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)>
-    {
-        std::array<std::vector<Vertex>, static_cast<size_t>(Cell::Collision::NUM_COLLISIONS)> verts;
-        std::vector<Vertex> temp;
-
-        //Empty
-        verts[0].append_range(temp);
-
-        //PlaneLow
-        temp = makeMesh({Mesh::Piece::TOPLOW},tc,sc);
-        verts[1].append_range(temp);
-
-        //PlaneMid
-        temp = makeMesh({Mesh::Piece::TOPMID},tc,sc);
-        verts[2].append_range(temp);
-
-
-        //PlaneHigh
-        temp = makeMesh({Mesh::Piece::TOPHIGH},tc,sc);
-        verts[3].append_range(temp);
-
-
-        //BlockLow
-        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW},tc,sc);
-        verts[4].append_range(temp);
-
-
-        //BlockMid
-        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID},tc,sc);
-        verts[5].append_range(temp);
-
-
-        //BlockHigh
-        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH},tc,sc);
-        verts[6].append_range(temp);
-
-
-        //TunnelLow
-        temp = makeMesh({Mesh::Piece::TUNNELLOW},tc,sc);
-        verts[7].append_range(temp);
-
-
-        //TunnelMid
-        temp = makeMesh({Mesh::Piece::TUNNELMID},tc,sc);
-        verts[8].append_range(temp);
-
-
-        //TunnelHgh
-        temp = makeMesh({Mesh::Piece::TUNNELHIGH},tc,sc);
-        verts[9].append_range(temp);
-
-
-        //TunnelPlaneLow
-        temp = makeMesh({Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},tc,sc);
-        verts[10].append_range(temp);
-
-
-        //TunnelPlaneMid
-        temp = makeMesh({Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},tc,sc);
-        verts[11].append_range(temp);
-
-
-        //TunnelPlaneHigh
-        temp = makeMesh({Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH},tc,sc);
-        verts[12].append_range(temp);
-
-
-        //TunnelBlockLow
-        temp = makeMesh({Mesh::Piece::LEFTLOW,Mesh::Piece::RIGHTLOW,Mesh::Piece::FRONTLOW,Mesh::Piece::TOPLOW,Mesh::Piece::TUNNELLOW},tc,sc);
-        verts[13].append_range(temp);
-
-
-        //TunnelBlockMid
-        temp = makeMesh({Mesh::Piece::LEFTMID,Mesh::Piece::RIGHTMID,Mesh::Piece::FRONTMID,Mesh::Piece::TOPMID,Mesh::Piece::TUNNELMID},tc,sc);
-        verts[14].append_range(temp);
-
-
-        //TunnelBlockHgh
-        temp = makeMesh({Mesh::Piece::LEFTHIGH,Mesh::Piece::RIGHTHIGH,Mesh::Piece::FRONTHIGH,Mesh::Piece::TOPHIGH,Mesh::Piece::TUNNELHIGH},tc,sc);
-        verts[15].append_range(temp);
-
-        return verts;
-    }
 
     constexpr static std::span<Vertex const> SHIP_MESH
     {

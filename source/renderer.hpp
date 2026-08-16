@@ -19,7 +19,7 @@ public:
     {
         ctx.setViewPort(160,128);
         ctx.setFaceCulling(1);
-        ctx.getVertexFunction().camPos = {-2.0_fx,1.3_fx,-1.3_fx};
+        ctx.getVertexFunction().camPos = {0_fx,1.3_fx,-1.3_fx};
     }
 
     ~Renderer()
@@ -50,9 +50,9 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0003_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0005_fx;
 
-        for(int16_t z = 7; z >=0; --z)
+        for(int16_t z = 6; z >=0; --z)
         {
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
@@ -81,7 +81,7 @@ public:
 
 
 
-        ctx.quad(20,50,50,0,100,100,20,100, 65535);
+        //ctx.quad(20,50,50,0,100,100,20,100, 65535);
 
         ctx.present();
     }
