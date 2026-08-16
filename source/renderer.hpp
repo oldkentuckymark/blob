@@ -77,7 +77,7 @@ public:
         ctx.getVertexFunction().modelPos = current_player_->position;
         ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
         ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
-        ctx.drawArray(ffr::DrawType::Quads,0,Mesh::SHIP_MESH.size());
+        //ctx.drawArray(ffr::DrawType::Quads,0,Mesh::SHIP_MESH.size());
 
 
 
