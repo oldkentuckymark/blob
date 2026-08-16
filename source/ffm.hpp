@@ -174,6 +174,20 @@ public:
     {
         return this->data >= that.data;
     }
+
+    constexpr auto doubled() const -> fixed32
+    {
+        fixed32 r;
+        r.data = this->data << 1;
+        return r;
+    }
+
+    constexpr auto halved() const -> fixed32
+    {
+        fixed32 r;
+        r.data = this->data >> 1;
+        return r;
+    }
 };
 
 }

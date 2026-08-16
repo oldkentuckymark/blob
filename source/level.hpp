@@ -60,7 +60,7 @@ public:
                 }
                 std::advance(it, 1);
             }
-            throw(-1);
+            //throw(-1);
         };
 
 
@@ -483,7 +483,7 @@ public:
             }
             else
             {
-                throw "ERROR: Invalid data in level file!";
+                //throw "ERROR: Invalid data in level file!";
             }
 
             return c;

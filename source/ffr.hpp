@@ -6,8 +6,6 @@
 
 #include "ffm.hpp"
 
-//TODO: implement interleaved rendering
-
 namespace ffr
 {
 
@@ -345,7 +343,7 @@ public:
         }
 
 
-        uint32_t col = 0;
+        size_t col = 0;
         for(uint32_t i = 0; i < working_vertex_buffer_.size(); ++i)
         {
             uint16_t const & ccs{working_color_buffer_[col]};
@@ -370,24 +368,17 @@ public:
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
 
-
-                if(is_cull_passing(v0, v1, v2))
+                std::array<vec3, 3*(3+4)> vertArr;
+                auto vertCount = ClipAndTriangulateConvexPolygon<3>({v0,v1,v2}, vertArr);
+                for(auto j = 0; j < vertCount; j = j + 3)
                 {
-                    std::array<vec3, 3*(3+4)> vertArr;
-                    auto vertCount = ClipAndTriangulateConvexPolygon<3>({v0,v1,v2}, vertArr);
-                    for(auto j = 0; j < vertCount; j = j + 3)
+                    project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);
+                    if(is_cull_passing(vertArr[j],vertArr[j+1],vertArr[j+2]))
                     {
-                        project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);
                         to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);
-
-                        triangle( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, ccs);
+                        triangle( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, ccs );
                     }
-
-                }
-
-
-
-
+                    }
                 i = i + 2;
                 col = col + 3;
             }
@@ -617,7 +608,7 @@ private:
         vec3 b = v2 - v0;
         vec3 normal = vec3::cross(a, b);
 
-        if(cull_ == 1) [[likely]]  { return normal.z >  0.0_fx; }
+        if(cull_ == 1) [[likely]]  { return normal.z > 0.0_fx; }
         else if(cull_ == 0) { return true; }
         else { return normal.z <  0.0_fx; }
 
@@ -626,12 +617,12 @@ private:
     auto to_screen_space(vec3& p) -> void
     {
         // Map from [-1, +1] → [0, 1]
-        fixed32 sx = (p.x + 1.0_fx) * 0.5_fx;
-        fixed32 sy = (1.0_fx - p.y) * 0.5_fx;
+        fixed32 sx = (p.x + 1.0_fx).halved();
+        fixed32 sy = (1.0_fx - p.y).halved();
 
         // Scale to viewport
-        p.x = sx * viewport_width_fx_;
-        p.y = sy * viewport_height_fx_;
+        p.x = sx * viewport_width_fx_ - 1.0_fx;
+        p.y = sy * viewport_height_fx_ - 1.0_fx;
     }
 
 
@@ -657,51 +648,51 @@ private:
         //         aspect*x + z >= 0
         planes[0] = vec4{
             aspect_ratio_,
-            fixed32(0),
-            fixed32(1),
-            fixed32(0)
+            0.0_fx,
+            1.0_fx,
+            0.0_fx
         };
 
         // RIGHT:  x <= z * aspect
         //         -aspect*x + z >= 0
         planes[1] = vec4{
             -aspect_ratio_,
-            fixed32(0),
-            fixed32(1),
-            fixed32(0)
+            0.0_fx,
+            1.0_fx,
+            0.0_fx
         };
 
         // BOTTOM: y >= -z
         //         y + z >= 0
         planes[2] = vec4{
-            fixed32(0),
-            fixed32(1),
-            fixed32(1),
-            fixed32(0)
+            0.0_fx,
+            1.0_fx,
+            1.0_fx,
+            0.0_fx
         };
 
         // TOP:    y <= z
         //         -y + z >= 0
         planes[3] = vec4{
-            fixed32(0),
-            fixed32(-1),
-            fixed32(1),
-            fixed32(0)
+            0.0_fx,
+            -1.0_fx,
+            1.0_fx,
+            0.0_fx
         };
 
         // NEAR:   z >= nearZ
         planes[4] = vec4{
-            fixed32(0),
-            fixed32(0),
-            fixed32(1),
+            0.0_fx,
+            0.0_fx,
+            1.0_fx,
             -nearZ
         };
 
         // FAR:    z <= farZ
         planes[5] = vec4{
-            fixed32(0),
-            fixed32(0),
-            fixed32(-1),
+            0.0_fx,
+            0.0_fx,
+            -1.0_fx,
             farZ
         };
 

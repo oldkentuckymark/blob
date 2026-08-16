@@ -17,8 +17,8 @@ class Renderer
 public:
     Renderer()
     {
-        ctx.setViewPort(240,160);
-        ctx.setFaceCulling(0);
+        ctx.setViewPort(160,128);
+        ctx.setFaceCulling(1);
         ctx.getVertexFunction().camPos = {-2.0_fx,1.3_fx,-1.3_fx};
     }
 
@@ -50,17 +50,24 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0001_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0003_fx;
 
-        for(int16_t z = current_level_->getLength() - 1; z >=0; --z)
+        for(int16_t z = 7; z >=0; --z)
         {
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
+                auto collision {static_cast<size_t>(current_level_->getCell(x,z).collision)};
 
-                ctx.getVertexFunction().modelPos = {ffm::fixed32(x-3) - 0.5_fx,0.0_fx,ffm::fixed32(z)};
-                ctx.setColorPointer(0, current_level_->getCellColorBufferPtr(x,z));
-                ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(current_level_->getCell(x,z).collision) ].data());
-                ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[ static_cast<size_t>(current_level_->getCell(x,z).collision)].size());
+
+                if(collision)
+                {
+
+                    ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)) - 0.5_fx,0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
+                    auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
+                    ctx.setColorPointer(0, colptr);
+                    ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());
+                    ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[ collision].size());
+                }
 
             }
         }

@@ -9,6 +9,8 @@
 
 #include "ffr.hpp"
 #include "mesh.hpp"
+#include "level.hpp"
+#include "renderer.hpp"
 
 #define KEY_A        0x0001
 #define KEY_B        0x0002
@@ -37,37 +39,7 @@ public:
     {
 
         using namespace ffm;
-        // Precompute sines and cosines
-        fixed32 const cx = cos(modelRotation.x);
-        fixed32 const sx = sin(modelRotation.x);
 
-        fixed32 const cy = cos(modelRotation.y);
-        fixed32 const sy = sin(modelRotation.y);
-
-        fixed32 const cz = cos(modelRotation.z);
-        fixed32 const sz = sin(modelRotation.z);
-
-        // --- Rotate around X ---
-        vec3 rx;
-        rx.x = in.x;
-        rx.y = in.y * cx - in.z * sx;
-        rx.z = in.y * sx + in.z * cx;
-
-        // --- Rotate around Y ---
-        vec3 ry;
-        ry.x = rx.x * cy + rx.z * sy;
-        ry.y = rx.y;
-        ry.z = -rx.x * sy + rx.z * cy;
-
-        // --- Rotate around Z ---
-        vec3 rz;
-        rz.x = ry.x * cz - ry.y * sz;
-        rz.y = ry.x * sz + ry.y * cz;
-        rz.z = ry.z;
-
-
-
-        in = rz;
 
         in = in + modelPos - camPos;
 
@@ -75,7 +47,6 @@ public:
 
     ffm::vec3 camPos{0.0_fx,0.0_fx,0_fx};
     ffm::vec3 modelPos{0.0_fx,0.0_fx,0.0_fx};
-    ffm::vec3 modelRotation{0_fx,0_fx,0_fx};
 
 };
 \
@@ -219,21 +190,21 @@ uint32_t getKeyState(uint16_t key_code)
 
 int main(void)
 {
-
     // Set up the interrupt handlers
     irqInit();
-
     //irqSet( IRQ_VBLANK, VblankInterrupt);
 
+    Renderer<Context> renderer;
+
+    Player player;
+
+    renderer.setPlayer(&player);
+    renderer.setPlayerMesh(Mesh::SHIP_MESH);
+    renderer.setDrawDistance(10);
+    renderer.setLevel(&level0);
 
 
 
-    Context ctx;
-    ctx.setViewPort(160,128);
-
-    ffm::vec3 p1{-3.0_fx,-3.0_fx,7.0_fx};
-    ffm::vec3 p2{3.0_fx,3.0_fx,7.0_fx};
-    ffm::vec3 cp{0.0_fx,0.0_fx,0.0_fx};
 
     while (true)
     {
@@ -242,13 +213,7 @@ int main(void)
 
 
 
-
-        ctx.clear();
-
-
-        ctx.present();
-
-
+        renderer.draw();
     }
 
     return 0;
