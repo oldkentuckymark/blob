@@ -255,110 +255,9 @@ public:
 
     virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
     {
+        triangle(x0,y0,x1,y1,x2,y2,color);
+        triangle(x2,y2,x3,y3,x0,y0,color);
 
-        const int xs[4] = {x0, x1, x2, x3};
-        const int ys[4] = {y0, y1, y2, y3};
-
-        // 1. Find Top Vertex (min Y)
-        int top = 0;
-        for (int i = 1; i < 4; ++i) {
-            if (ys[i] < ys[top]) top = i;
-        }
-
-        // 2. Setup Edge Walkers (Left=Backward, Right=Forward)
-        // Left Chain Indices: top -> top-1 -> top-2
-        int l_curr = top;
-        int l_next = (top - 1 + 4) % 4;
-        // Right Chain Indices: top -> top+1 -> top+2
-        int r_curr = top;
-        int r_next = (top + 1) % 4;
-
-        // Edge State Variables (Left)
-        int lx = xs[l_curr], ly = ys[l_curr];
-        int ldx = xs[l_next] - lx, ldy = ys[l_next] - ly;
-        int l_err = (ldy > 0) ? ldy / 2 : 0;
-        int l_x_inc = (ldx >= 0) ? 1 : -1;
-        int l_num = ffm::abs(ldx), l_den = ffm::abs(ldy);
-        int l_y_max = ys[l_next];
-
-        // Edge State Variables (Right)
-        int rx = xs[r_curr], ry = ys[r_curr];
-        int rdx = xs[r_next] - rx, rdy = ys[r_next] - ry;
-        int r_err = (rdy > 0) ? rdy / 2 : 0;
-        int r_x_inc = (rdx >= 0) ? 1 : -1;
-        int r_num = ffm::abs(rdx), r_den = ffm::abs(rdy);
-        int r_y_max = ys[r_next];
-
-        // Skip horizontal start edges if any
-        while (l_den == 0) {
-            l_curr = l_next; l_next = (l_curr - 1 + 4) % 4;
-            lx = xs[l_curr]; ly = ys[l_curr];
-            ldx = xs[l_next] - lx; ldy = ys[l_next] - ly;
-            l_err = (ldy > 0) ? ldy / 2 : 0; l_x_inc = (ldx >= 0) ? 1 : -1;
-            l_num = ffm::abs(ldx); l_den = ffm::abs(ldy); l_y_max = ys[l_next];
-        }
-        while (r_den == 0) {
-            r_curr = r_next; r_next = (r_curr + 1) % 4;
-            rx = xs[r_curr]; ry = ys[r_curr];
-            rdx = xs[r_next] - rx; rdy = ys[r_next] - ry;
-            r_err = (rdy > 0) ? rdy / 2 : 0; r_x_inc = (rdx >= 0) ? 1 : -1;
-            r_num = ffm::abs(rdx); r_den = ffm::abs(rdy); r_y_max = ys[r_next];
-        }
-
-        int scan_y = ffm::max(ly, ry);
-        int end_y = ffm::max(ys[0], ffm::max(ys[1], ffm::max(ys[2], ys[3])));
-
-        // 3. Scanline Loop
-        while (scan_y <= end_y) {
-            // Draw span
-            if (lx <= rx) lineHorizontal(lx, scan_y, rx, color);
-            else lineHorizontal(rx, scan_y, lx, color);
-
-            scan_y++;
-
-            // Step Left Edge
-            if (ly < l_y_max) {
-                l_err += l_num;
-                if (l_err >= l_den) { lx += l_x_inc; l_err -= l_den; }
-                ly++;
-            } else {
-                // Switch to next segment on Left
-                l_curr = l_next; l_next = (l_curr - 1 + 4) % 4;
-                lx = xs[l_curr]; ly = ys[l_curr];
-                ldx = xs[l_next] - lx; ldy = ys[l_next] - ly;
-                l_err = (ldy > 0) ? ldy / 2 : 0; l_x_inc = (ldx >= 0) ? 1 : -1;
-                l_num = ffm::abs(ldx); l_den = ffm::abs(ldy); l_y_max = ys[l_next];
-                // Fast forward if needed (shouldn't be for convex)
-                while (ly < scan_y && l_den > 0) {
-                    l_err += l_num; if (l_err >= l_den) { lx += l_x_inc; l_err -= l_den; }
-                    ly++;
-                }
-            }
-
-            // Step Right Edge
-            if (ry < r_y_max) {
-                r_err += r_num;
-                if (r_err >= r_den) { rx += r_x_inc; r_err -= r_den; }
-                ry++;
-            } else {
-                // Switch to next segment on Right
-                r_curr = r_next; r_next = (r_curr + 1) % 4;
-                rx = xs[r_curr]; ry = ys[r_curr];
-                rdx = xs[r_next] - rx; rdy = ys[r_next] - ry;
-                r_err = (rdy > 0) ? rdy / 2 : 0; r_x_inc = (rdx >= 0) ? 1 : -1;
-                r_num = ffm::abs(rdx); r_den = ffm::abs(rdy); r_y_max = ys[r_next];
-                while (ry < scan_y && r_den > 0) {
-                    r_err += r_num; if (r_err >= r_den) { rx += r_x_inc; r_err -= r_den; }
-                    ry++;
-                }
-            }
-
-            // Termination check
-            if ((l_den == 0 || ly >= l_y_max) && (r_den == 0 || ry >= r_y_max)) {
-                // Check if both are at the very bottom vertex
-                if (ly >= end_y && ry >= end_y) break;
-            }
-        }
 
     }
 
@@ -473,7 +372,7 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
 
                 std::array<vec3, 3*(3+4)> vertArr;
-                auto vertCount = ClipAndTriangulateConvexPolygon<3>({v0,v1,v2}, vertArr);
+                auto vertCount = clip_triangle({v0,v1,v2}, vertArr);
                 for(auto j = 0; j < vertCount; j = j + 3)
                 {
                     project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);
@@ -497,6 +396,27 @@ public:
                 i = i + 2;
                 col = col + 3;
             }
+            else if(current_draw_type_ == DrawType::Quads)
+            {
+                vec3& v0{working_vertex_buffer_[i]};
+                vec3& v1{working_vertex_buffer_[i+1]};
+                vec3& v2{working_vertex_buffer_[i+2]};
+                vec3& v3{working_vertex_buffer_[i+3]};
+
+                std::array<vec3, 16> vertArr;
+                auto vertCount = clip_quad({v0,v1,v2,v3}, vertArr);
+                for(auto j = 0; j < vertCount; j = j + 4)
+                {
+                    project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);project_to_ndc(vertArr[j+3]);
+                    if(is_cull_passing(vertArr[j],vertArr[j+1],vertArr[j+2]))
+                    {
+                        to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);to_screen_space(vertArr[j+3]);
+                        quad( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, vertArr[j+3].x,vertArr[j+3].y, ccs );
+                    }
+                }
+                i = i + 3;
+                col = col + 4;
+            }
         }
 
     }
@@ -515,23 +435,22 @@ public:
 
 private:
 
-    template <std::size_t N>
-    std::size_t ClipAndTriangulateConvexPolygon( const std::array<vec3, N>& polygon, std::array<vec3, 3 * (N + 4)>& outVerts) const
+    size_t clip_triangle( const std::array<vec3, 3>& triangle, std::array<vec3, 3 * (3 + 4)>& outVerts) const
     {
         // A polygon can gain at most one vertex per clipping plane.
-        std::array<vec3, N + 6> current{};
-        std::array<vec3, N + 6> next{};
+        std::array<vec3, 3 + 6> current{};
+        std::array<vec3, 3 + 6> next{};
 
-        std::size_t currentCount = N;
+        size_t currentCount = 3;
 
-        for (std::size_t i = 0; i < N; ++i)
-            current[i] = polygon[i];
+        for (size_t i = 0; i < 3; ++i)
+            current[i] = triangle[i];
 
         auto clipPlane = [&](const vec4& plane)
         {
-            std::size_t nextCount = 0;
+            size_t nextCount = 0;
 
-            for (std::size_t i = 0; i < currentCount; ++i)
+            for (size_t i = 0; i < currentCount; ++i)
             {
                 const vec3& curr = current[i];
                 const vec3& prev = current[(i + currentCount - 1) % currentCount];
@@ -578,16 +497,90 @@ private:
         if (currentCount < 3)
             return 0;
 
-        std::size_t outCount = 0;
+        size_t outCount = 0;
         const vec3& anchor = current[0];
 
-        for (std::size_t i = 1; i + 1 < currentCount; ++i)
+        for (size_t i = 1; i + 1 < currentCount; ++i)
         {
             outVerts[outCount++] = anchor;
             outVerts[outCount++] = current[i];
             outVerts[outCount++] = current[i + 1];
         }
 
+        return outCount;
+    }
+
+    size_t clip_quad( const std::array<vec3, 4>& quad, std::array<vec3, 4 * 4>& outVerts) const
+    {
+        // A polygon can gain at most one vertex per clipping plane.
+        std::array<vec3, 4 + 6> current{};
+        std::array<vec3, 4 + 6> next{};
+        size_t currentCount = 4;
+        for (size_t i = 0; i < 4; ++i)
+            current[i] = quad[i];
+        auto clipPlane = [&](const vec4& plane)
+        {
+            size_t nextCount = 0;
+            for (size_t i = 0; i < currentCount; ++i)
+            {
+                const vec3& curr = current[i];
+                const vec3& prev = current[(i + currentCount - 1) % currentCount];
+                const fixed32 dCurr =
+                    plane.x * curr.x +
+                    plane.y * curr.y +
+                    plane.z * curr.z +
+                    plane.w;
+                const fixed32 dPrev =
+                    plane.x * prev.x +
+                    plane.y * prev.y +
+                    plane.z * prev.z +
+                    plane.w;
+                const bool currIn = dCurr >= 0.0_fx;
+                const bool prevIn = dPrev >= 0.0_fx;
+                if (currIn != prevIn)
+                {
+                    const fixed32 t = dPrev / (dPrev - dCurr);
+                    next[nextCount++] = prev + (curr - prev) * t;
+                }
+                if (currIn)
+                    next[nextCount++] = curr;
+            }
+            current = next;
+            currentCount = nextCount;
+        };
+        // Clip against all six global frustum planes.
+        for (const vec4& plane : frustrum_)
+        {
+            clipPlane(plane);
+            if (currentCount == 0)
+                return 0;
+        }
+        // --- Fan the clipped convex polygon into quads ---
+        // (The quad is planar, and clipping a planar convex polygon against a
+        // half-space yields another planar convex polygon, so a plain vertex
+        // fan is still valid here — same reasoning as the triangle case.)
+        if (currentCount < 3)
+            return 0;
+        size_t outCount = 0;
+        const vec3& anchor = current[0];
+        size_t i = 1;
+        for (; i + 2 < currentCount; i += 2)
+        {
+            outVerts[outCount++] = anchor;
+            outVerts[outCount++] = current[i];
+            outVerts[outCount++] = current[i + 1];
+            outVerts[outCount++] = current[i + 2];
+        }
+        // One pair of vertices can be left over when (currentCount - 1) is even;
+        // close the fan with a degenerate quad (last vertex repeated) rather
+        // than a bare triangle, so every emitted primitive is a quad.
+        if (i + 1 < currentCount)
+        {
+            outVerts[outCount++] = anchor;
+            outVerts[outCount++] = current[i];
+            outVerts[outCount++] = current[i + 1];
+            outVerts[outCount++] = current[i + 1];
+        }
         return outCount;
     }
 

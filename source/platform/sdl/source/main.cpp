@@ -190,14 +190,14 @@ auto main() -> int
         c2 = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>( c2.time_since_epoch()-c1.time_since_epoch()).count() >= 16)
         {
-
+            renderer.draw();
 
             auto dt = static_cast<uint16_t>(std::chrono::duration_cast<std::chrono::milliseconds>(c2-c1).count());
             c1 = std::chrono::steady_clock::now();
         }
 
 
-        renderer.draw();
+
 
     }
 //color buffer ptrs not being set right

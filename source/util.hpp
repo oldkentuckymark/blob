@@ -121,7 +121,7 @@ template<class T, std::size_t N>
 }
 
 [[nodiscard]] constexpr auto calculateLight(ffm::vec3 const & normal,
-                                            ffm::vec3 const & trianglecolor,
+                                            ffm::vec3 const & surfacecolor,
                                             ffm::vec3 const & lightdirection,
                                             ffm::vec3 const & lightcolor = {1.0_fx,1.0_fx,1.0_fx},
                                             ffm::vec3 const & ambientcolor = {0.45_fx,0.45_fx,0.45_fx}) -> uint16_t
@@ -131,8 +131,8 @@ template<class T, std::size_t N>
     if(d < 0.0_fx) { d = -d;}
     ffm::fixed32 const factor = d;
 
-    ffm::vec3 diffuse = trianglecolor * lightcolor * factor;
-    ffm::vec3 ambient = trianglecolor * ambientcolor;
+    ffm::vec3 diffuse = surfacecolor * lightcolor * factor;
+    ffm::vec3 ambient = surfacecolor * ambientcolor;
     ffm::vec3 newcolor = ambient + diffuse;
     if(newcolor.x > 1.0_fx) {newcolor.x = 1.0_fx;}
     if(newcolor.y > 1.0_fx) {newcolor.y = 1.0_fx;}

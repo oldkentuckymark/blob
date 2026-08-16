@@ -50,7 +50,7 @@ public:
     auto draw() -> void
     {
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.0005_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.05_fx;
 
         for(int16_t z = 6; z >=0; --z)
         {
@@ -66,7 +66,7 @@ public:
                     auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
                     ctx.setColorPointer(0, colptr);
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());
-                    ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[ collision].size());
+                    ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ collision].size());
                 }
 
             }
@@ -77,7 +77,8 @@ public:
         ctx.getVertexFunction().modelPos = current_player_->position;
         ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
         ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
-        //ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
+        ctx.drawArray(ffr::DrawType::Quads,0,Mesh::SHIP_MESH.size());
+
 
 
 

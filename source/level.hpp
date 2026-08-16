@@ -80,6 +80,7 @@ public:
                 (
                     Mesh::applyLightingColors
                     (
+                        4,
                         Mesh::makeMesh
                         (
                             Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneLow)],cp.first,cp.second
@@ -99,6 +100,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneMid)],cp.first,cp.second
@@ -118,6 +120,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::PlaneHigh)],cp.first,cp.second
@@ -137,6 +140,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockLow)],cp.first,cp.second
@@ -156,6 +160,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockMid)],cp.first,cp.second
@@ -175,6 +180,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::BlockHigh)],cp.first,cp.second
@@ -194,6 +200,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelLow)],cp.first,cp.second
@@ -213,6 +220,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelMid)],cp.first,cp.second
@@ -232,6 +240,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneLow)],cp.first,cp.second
@@ -251,6 +260,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneMid)],cp.first,cp.second
@@ -270,6 +280,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelPlaneHigh)],cp.first,cp.second
@@ -289,6 +300,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockLow)],cp.first,cp.second
@@ -308,6 +320,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockMid)],cp.first,cp.second
@@ -327,6 +340,7 @@ public:
                     (
                         Mesh::applyLightingColors
                         (
+                            4,
                             Mesh::makeMesh
                             (
                                 Mesh::getCellPieceLists()[static_cast<size_t>(Cell::Collision::TunnelBlockHigh)],cp.first,cp.second

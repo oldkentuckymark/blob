@@ -51,14 +51,6 @@ namespace Mesh
         NUM_PIECES
     };
 
-
-    class DrawSpan
-    {
-    public:
-        uint32_t offset{0};
-        uint32_t count{0};
-    };
-
     [[nodiscard]] consteval static auto makeMeshPiece(Mesh::Piece const m, uint16_t const c = 0) -> std::vector<Vertex>
     {
 
@@ -263,17 +255,18 @@ namespace Mesh
     }
 
 
-    [[nodiscard]] consteval static auto applyLightingColors(std::span<Vertex const> const & verts,
+    [[nodiscard]] consteval static auto applyLightingColors(size_t const n, std::span<Vertex const> const & verts,
                                                             ffm::vec3 const & lightdirection, ffm::vec3 lightColor) -> std::vector<Vertex>
     {
         std::vector<Vertex> r; r.append_range(verts);
-        for(auto i = 0ul; i < verts.size(); i = i + 3)
+        for(auto i = 0ul; i < verts.size(); i = i + n)
         {
             auto const colv3 = util::Convert555tovec3(r[i].color);
 
             auto const norm = util::triangleNormal(r[i+0].position, r[i+1].position, r[i+2].position);
             auto newcolor = util::calculateLight(norm, colv3, lightdirection, lightColor);
             r[i+0].color = newcolor; r[i+1].color = newcolor; r[i+2].color = newcolor;
+            if(n == 4) { r[i+3].color = newcolor; }
 
         }
         return r;
@@ -330,7 +323,7 @@ namespace Mesh
         return {positions,colors};
     }
 
-    [[nodiscard]] consteval static auto mergeVertexArrays(std::span<ffm::vec3> pos, std::span<uint16_t> cols) -> std::vector<Vertex>
+    [[nodiscard]] consteval static auto mergeAttributeArrays(std::span<ffm::vec3> pos, std::span<uint16_t> cols) -> std::vector<Vertex>
     {
         std::vector<Vertex> r;
         for(auto i = 0ul; i < pos.size(); ++i)
