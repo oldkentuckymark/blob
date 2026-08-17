@@ -188,6 +188,13 @@ public:
         r.data = this->data >> 1;
         return r;
     }
+
+    constexpr static auto tiny() -> fixed32
+    {
+        fixed32 r;
+        r.data = 1;
+        return r;
+    }
 };
 
 }

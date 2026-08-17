@@ -257,8 +257,6 @@ public:
     {
         triangle(x0,y0,x1,y1,x2,y2,color);
         triangle(x2,y2,x3,y3,x0,y0,color);
-
-
     }
 
     virtual auto clear() -> void {}
@@ -282,10 +280,10 @@ public:
     {
         viewport_width_ = w;
         viewport_height_ = h;
-        viewport_width_fx_ = static_cast<int16_t>(w);
-        viewport_height_fx_ = static_cast<int16_t>(h);
+        viewport_width_fx_ = static_cast<fixed32>(w);
+        viewport_height_fx_ = static_cast<fixed32>(h);
         aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
-        frustrum_ = ComputeFrustumPlanesAsVec4();
+        //frustrum_ = ComputeFrustumPlanesAsVec4();
     }
 
     auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
@@ -355,12 +353,32 @@ public:
             {
                 vec3& cvs = working_vertex_buffer_[i];
 
+                if(clip_point_near_(cvs))
+                {
+                    project_to_ndc(cvs);
+                    if(clip_point_ndc_space_(cvs))
+                    {
+                        to_screen_space(cvs);
+                        plot(cvs.x,cvs.y,ccs);
+                    }
+                }
+
                 col = col + 1;
             }
             else if(current_draw_type_ == DrawType::Lines)
             {
                 vec3& p0{working_vertex_buffer_[i]};
                 vec3& p1{working_vertex_buffer_[i+1]};
+
+                if(clip_line_near_(p0,p1))
+                {
+                    project_to_ndc(p0);project_to_ndc(p1);
+                    if(clip_line_ndc_space_(p0,p1))
+                    {
+                        to_screen_space(p0);to_screen_space(p1);
+                        line(p0.x,p0.y,p1.x,p1.y,ccs);
+                    }
+                }
 
                 i = i + 1;;
                 col = col + 2;
@@ -371,17 +389,24 @@ public:
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
 
-                std::array<vec3, 3*(3+4)> vertArr;
-                auto vertCount = clip_triangle({v0,v1,v2}, vertArr);
-                for(auto j = 0; j < vertCount; j = j + 3)
+                std::array<vec3,6> outVerts;
+                auto numverts = clip_triangle_near_({v0,v1,v2},outVerts);
+                for(auto j = 0ul; j < numverts; j = j + 3)
                 {
-                    project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);
-                    if(is_cull_passing(vertArr[j],vertArr[j+1],vertArr[j+2]))
+                    project_to_ndc(outVerts[j+0]);project_to_ndc(outVerts[j+1]);project_to_ndc(outVerts[j+2]);
+                    if(is_cull_passing(outVerts[j+0],outVerts[j+1],outVerts[j+2]))
                     {
-                        to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);
-                        triangle( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, ccs );
+                    std::array<vec3,12> outVerts2;
+                    auto k = clip_triangle_ndc_space_({outVerts[j+0],outVerts[j+1],outVerts[j+2]}, outVerts2);
+                    for(auto l = 0ul; l < k; l = l + 3)
+                    {
+                        to_screen_space(outVerts2[l+0]);to_screen_space(outVerts2[l+1]);to_screen_space(outVerts2[l+2]);
+                        triangle( outVerts2[l+0].x,outVerts2[l+0].y, outVerts2[l+1].x,outVerts2[l+1].y, outVerts2[l+2].x,outVerts2[l+2].y, ccs );
+                    }
                     }
                 }
+
+
                 i = i + 2;
                 col = col + 3;
             }
@@ -403,17 +428,7 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 vec3& v3{working_vertex_buffer_[i+3]};
 
-                std::array<vec3, 16> vertArr;
-                auto vertCount = clip_quad({v0,v1,v2,v3}, vertArr);
-                for(auto j = 0; j < vertCount; j = j + 4)
-                {
-                    project_to_ndc(vertArr[j]);project_to_ndc(vertArr[j+1]);project_to_ndc(vertArr[j+2]);project_to_ndc(vertArr[j+3]);
-                    if(is_cull_passing(vertArr[j],vertArr[j+1],vertArr[j+2]))
-                    {
-                        to_screen_space(vertArr[j]);to_screen_space(vertArr[j+1]);to_screen_space(vertArr[j+2]);to_screen_space(vertArr[j+3]);
-                        quad( vertArr[j].x,vertArr[j].y, vertArr[j+1].x,vertArr[j+1].y, vertArr[j+2].x,vertArr[j+2].y, vertArr[j+3].x,vertArr[j+3].y, ccs );
-                    }
-                }
+
                 i = i + 3;
                 col = col + 4;
             }
@@ -426,171 +441,310 @@ public:
         return vf_;
     }
 
-    auto setFaceCulling(int32_t mode) -> void
+    auto setFaceCulling(FaceCullMode const mode) -> void
     {
         cull_ = mode;
     }
 
+    auto setNearZ(fixed32 const z) -> void
+    {
+        near_z_ = z;
+    }
 
 
 private:
 
-    size_t clip_triangle( const std::array<vec3, 3>& triangle, std::array<vec3, 3 * (3 + 4)>& outVerts) const
+    [[nodiscard]] auto clip_point_near_(vec3 const & p) const -> bool
     {
-        // A polygon can gain at most one vertex per clipping plane.
-        std::array<vec3, 3 + 6> current{};
-        std::array<vec3, 3 + 6> next{};
-
-        size_t currentCount = 3;
-
-        for (size_t i = 0; i < 3; ++i)
-            current[i] = triangle[i];
-
-        auto clipPlane = [&](const vec4& plane)
-        {
-            size_t nextCount = 0;
-
-            for (size_t i = 0; i < currentCount; ++i)
-            {
-                const vec3& curr = current[i];
-                const vec3& prev = current[(i + currentCount - 1) % currentCount];
-
-                const fixed32 dCurr =
-                    plane.x * curr.x +
-                    plane.y * curr.y +
-                    plane.z * curr.z +
-                    plane.w;
-
-                const fixed32 dPrev =
-                    plane.x * prev.x +
-                    plane.y * prev.y +
-                    plane.z * prev.z +
-                    plane.w;
-
-                const bool currIn = dCurr >= 0.0_fx;
-                const bool prevIn = dPrev >= 0.0_fx;
-
-                if (currIn != prevIn)
-                {
-                    const fixed32 t = dPrev / (dPrev - dCurr);
-                    next[nextCount++] = prev + (curr - prev) * t;
-                }
-
-                if (currIn)
-                    next[nextCount++] = curr;
-            }
-
-            current = next;
-            currentCount = nextCount;
-        };
-
-        // Clip against all six global frustum planes.
-        for (const vec4& plane : frustrum_)
-        {
-            clipPlane(plane);
-
-            if (currentCount == 0)
-                return 0;
-        }
-
-        // --- Triangulate clipped polygon ---
-        if (currentCount < 3)
-            return 0;
-
-        size_t outCount = 0;
-        const vec3& anchor = current[0];
-
-        for (size_t i = 1; i + 1 < currentCount; ++i)
-        {
-            outVerts[outCount++] = anchor;
-            outVerts[outCount++] = current[i];
-            outVerts[outCount++] = current[i + 1];
-        }
-
-        return outCount;
+        return p.z > 0.0_fx;
     }
 
-    size_t clip_quad( const std::array<vec3, 4>& quad, std::array<vec3, 4 * 4>& outVerts) const
+    [[nodiscard]] auto clip_line_near_(vec3& p0, vec3& p1) const -> bool
     {
-        // A polygon can gain at most one vertex per clipping plane.
-        std::array<vec3, 4 + 6> current{};
-        std::array<vec3, 4 + 6> next{};
-        size_t currentCount = 4;
-        for (size_t i = 0; i < 4; ++i)
-            current[i] = quad[i];
-        auto clipPlane = [&](const vec4& plane)
+        const auto z0 = p0.z;
+        const auto z1 = p1.z;
+
+        if (z0 <= near_z_ && z1 <= near_z_)
+            return false;
+
+        if (z0 >= near_z_ && z1 >= near_z_)
+            return true;
+
+        const auto t = (near_z_ - z0) / (z1 - z0);
+
+        if (z0 < near_z_)
         {
-            size_t nextCount = 0;
-            for (size_t i = 0; i < currentCount; ++i)
-            {
-                const vec3& curr = current[i];
-                const vec3& prev = current[(i + currentCount - 1) % currentCount];
-                const fixed32 dCurr =
-                    plane.x * curr.x +
-                    plane.y * curr.y +
-                    plane.z * curr.z +
-                    plane.w;
-                const fixed32 dPrev =
-                    plane.x * prev.x +
-                    plane.y * prev.y +
-                    plane.z * prev.z +
-                    plane.w;
-                const bool currIn = dCurr >= 0.0_fx;
-                const bool prevIn = dPrev >= 0.0_fx;
-                if (currIn != prevIn)
-                {
-                    const fixed32 t = dPrev / (dPrev - dCurr);
-                    next[nextCount++] = prev + (curr - prev) * t;
-                }
-                if (currIn)
-                    next[nextCount++] = curr;
-            }
-            current = next;
-            currentCount = nextCount;
-        };
-        // Clip against all six global frustum planes.
-        for (const vec4& plane : frustrum_)
-        {
-            clipPlane(plane);
-            if (currentCount == 0)
-                return 0;
+            p0.x = p0.x + (p1.x - p0.x) * t;
+            p0.y = p0.y + (p1.y - p0.y) * t;
+            p0.z = near_z_;
         }
-        // --- Fan the clipped convex polygon into quads ---
-        // (The quad is planar, and clipping a planar convex polygon against a
-        // half-space yields another planar convex polygon, so a plain vertex
-        // fan is still valid here — same reasoning as the triangle case.)
-        if (currentCount < 3)
-            return 0;
-        size_t outCount = 0;
-        const vec3& anchor = current[0];
-        size_t i = 1;
-        for (; i + 2 < currentCount; i += 2)
+        else
         {
-            outVerts[outCount++] = anchor;
-            outVerts[outCount++] = current[i];
-            outVerts[outCount++] = current[i + 1];
-            outVerts[outCount++] = current[i + 2];
+            p1.x = p1.x + (p1.x - p0.x) * t;
+            p1.y = p1.y + (p1.y - p0.y) * t;
+            p1.z = near_z_;
         }
-        // One pair of vertices can be left over when (currentCount - 1) is even;
-        // close the fan with a degenerate quad (last vertex repeated) rather
-        // than a bare triangle, so every emitted primitive is a quad.
-        if (i + 1 < currentCount)
-        {
-            outVerts[outCount++] = anchor;
-            outVerts[outCount++] = current[i];
-            outVerts[outCount++] = current[i + 1];
-            outVerts[outCount++] = current[i + 1];
-        }
-        return outCount;
+
+        return true;
     }
 
-    [[nodiscard]] auto clip_point_screen_space(vec3 const & p) -> bool
+    [[nodiscard]] auto clip_triangle_near_(std::array<vec3, 3> const & triangle, std::array<vec3, 6>& outVerts) const -> size_t
+    {
+        const auto inside = [this](const vec3& p) -> bool
+        {
+            return p.z >= near_z_;
+        };
+
+        const auto in0 = inside(triangle[0]);
+        const auto in1 = inside(triangle[1]);
+        const auto in2 = inside(triangle[2]);
+
+        // Trivial reject: all vertices are behind the near plane.
+        if (!in0 && !in1 && !in2)
+            return 0;
+
+        // Trivial accept: all vertices are in front of the near plane.
+        if (in0 && in1 && in2)
+        {
+            outVerts[0] = triangle[0];
+            outVerts[1] = triangle[1];
+            outVerts[2] = triangle[2];
+
+            return 3;
+        }
+
+        const auto intersect = [this](const vec3& a, const vec3& b) -> vec3
+        {
+            const auto t = (near_z_ - a.z) / (b.z - a.z);
+
+            vec3 p = a + (b - a) * t;
+            p.z = near_z_;
+
+            return p;
+        };
+
+        std::array<vec3, 6> clipped{};
+        size_t count = 0;
+
+        auto previous = triangle[2];
+        auto previous_inside = inside(previous);
+
+        for (const auto& current : triangle)
+        {
+            const auto current_inside = inside(current);
+
+            if (current_inside != previous_inside)
+                clipped[count++] = intersect(previous, current);
+
+            if (current_inside)
+                clipped[count++] = current;
+
+            previous = current;
+            previous_inside = current_inside;
+        }
+
+        if (count == 3)
+        {
+            outVerts[0] = clipped[0];
+            outVerts[1] = clipped[1];
+            outVerts[2] = clipped[2];
+
+            return 3;
+        }
+
+        // Clipped triangle is a quad -> two triangles.
+        outVerts[0] = clipped[0];
+        outVerts[1] = clipped[1];
+        outVerts[2] = clipped[2];
+
+        outVerts[3] = clipped[0];
+        outVerts[4] = clipped[2];
+        outVerts[5] = clipped[3];
+
+        return 6;
+    }
+
+    [[nodiscard]] auto clip_quad_near_(std::array<vec3, 4> const & quad, std::array<vec3, 8>& outVerts) const -> size_t
+    {
+        const auto inside = [this](const vec3& p) -> bool
+        {
+            return p.z >= near_z_;
+        };
+
+        const auto in0 = inside(quad[0]);
+        const auto in1 = inside(quad[1]);
+        const auto in2 = inside(quad[2]);
+        const auto in3 = inside(quad[3]);
+
+        // Trivial reject.
+        if (!in0 && !in1 && !in2 && !in3)
+            return 0;
+
+        // Trivial accept.
+        if (in0 && in1 && in2 && in3)
+        {
+            outVerts[0] = quad[0];
+            outVerts[1] = quad[1];
+            outVerts[2] = quad[2];
+            outVerts[3] = quad[3];
+
+            return 4;
+        }
+
+        const auto intersect = [this](const vec3& a, const vec3& b) -> vec3
+        {
+            const auto t = (near_z_ - a.z) / (b.z - a.z);
+
+            vec3 p = a + (b - a) * t;
+            p.z = near_z_;
+
+            return p;
+        };
+
+        std::array<vec3, 5> clipped{};
+
+        size_t count = 0;
+
+        auto previous = quad[3];
+        auto previous_inside = inside(previous);
+
+        for (const auto& current : quad)
+        {
+            const auto current_inside = inside(current);
+
+            if (current_inside != previous_inside)
+                clipped[count++] = intersect(previous, current);
+
+            if (current_inside)
+                clipped[count++] = current;
+
+            previous = current;
+            previous_inside = current_inside;
+        }
+
+        if (count < 3)
+            return 0;
+
+        // Triangle: use one degenerate quad.
+        if (count == 3)
+        {
+            outVerts[0] = clipped[0];
+            outVerts[1] = clipped[1];
+            outVerts[2] = clipped[2];
+            outVerts[3] = clipped[2];
+
+            return 4;
+        }
+
+        // Quad: no degeneracy required.
+        if (count == 4)
+        {
+            outVerts[0] = clipped[0];
+            outVerts[1] = clipped[1];
+            outVerts[2] = clipped[2];
+            outVerts[3] = clipped[3];
+
+            return 4;
+        }
+
+        // Pentagon: one real quad followed by one degenerate quad.
+        outVerts[0] = clipped[0];
+        outVerts[1] = clipped[1];
+        outVerts[2] = clipped[2];
+        outVerts[3] = clipped[3];
+
+        outVerts[4] = clipped[0];
+        outVerts[5] = clipped[3];
+        outVerts[6] = clipped[4];
+        outVerts[7] = clipped[4];
+
+        return 8;
+    }
+
+    [[nodiscard]] auto clip_point_ndc_space_(vec3 const & p) -> bool
+    {
+        return !(p.x < -1.0_fx || p.x >= 1.0_fx ||
+                 p.y < -1.0_fx || p.y >= 1.0_fx );
+    }
+
+    [[nodiscard]] auto clip_point_screen_space_(vec3 const & p) -> bool
     {
         return !(p.x < 0.0_fx || p.x >= viewport_width_fx_ ||
                  p.y < 0.0_fx || p.y >= viewport_height_fx_ );
     }
 
-    [[nodiscard]] auto clip_line_screen_space(vec3 &p0, vec3 &p1) -> bool
+    [[nodiscard]] auto clip_line_ndc_space_(vec3& p0, vec3& p1) -> bool
+    {
+        constexpr auto left   = 1u << 0;
+        constexpr auto right  = 1u << 1;
+        constexpr auto bottom = 1u << 2;
+        constexpr auto top    = 1u << 3;
+
+        const auto out_code = [](const vec3& p) {
+            auto code = 0u;
+
+            if (p.x < -1.0_fx) code |= left;
+            if (p.x >  1.0_fx) code |= right;
+            if (p.y < -1.0_fx) code |= bottom;
+            if (p.y >  1.0_fx) code |= top;
+
+            return code;
+        };
+
+        auto c0 = out_code(p0);
+        auto c1 = out_code(p1);
+
+        for (;;)
+        {
+            if ((c0 | c1) == 0)
+                return true;
+
+            if ((c0 & c1) != 0)
+                return false;
+
+            const auto code = c0 != 0 ? c0 : c1;
+
+            const auto dx = p1.x - p0.x;
+            const auto dy = p1.y - p0.y;
+
+            vec3 p{};
+
+            if (code & top)
+            {
+                p.x = p0.x + dx * (1.0_fx - p0.y) / dy;
+                p.y = 1.0_fx;
+            }
+            else if (code & bottom)
+            {
+                p.x = p0.x + dx * (-1.0_fx - p0.y) / dy;
+                p.y = -1.0_fx;
+            }
+            else if (code & right)
+            {
+                p.y = p0.y + dy * (1.0_fx - p0.x) / dx;
+                p.x = 1.0_fx;
+            }
+            else
+            {
+                p.y = p0.y + dy * (-1.0_fx - p0.x) / dx;
+                p.x = -1.0_fx;
+            }
+
+            p.z = code == c0 ? p0.z : p1.z;
+
+            if (code == c0)
+            {
+                p0 = p;
+                c0 = out_code(p0);
+            }
+            else
+            {
+                p1 = p;
+                c1 = out_code(p1);
+            }
+        }
+    }
+    [[nodiscard]] auto clip_line_screen_space_(vec3 &p0, vec3 &p1) -> bool
     {
         const int32_t xmax = viewport_width_  - 1;
         const int32_t ymax = viewport_height_ - 1;
@@ -691,24 +845,358 @@ private:
         return true;
     }
 
+    [[nodiscard]] auto clip_triangle_ndc_space_(std::array<vec3, 3> const& triangle, std::array<vec3, 12>& outVerts) -> size_t
+    {
+        enum class plane
+        {
+            left,
+            right,
+            bottom,
+            top
+        };
+
+        constexpr std::array planes{
+            plane::left,
+            plane::right,
+            plane::bottom,
+            plane::top,
+        };
+
+        const auto inside = [](vec3 const& p, plane clip_plane) -> bool
+        {
+            switch (clip_plane)
+            {
+            case plane::left:
+                return p.x >= -1.0_fx;
+
+            case plane::right:
+                return p.x <= 1.0_fx;
+
+            case plane::bottom:
+                return p.y >= -1.0_fx;
+
+            case plane::top:
+                return p.y <= 1.0_fx;
+            }
+
+            return false;
+        };
+
+        const auto intersect = [](vec3 const& a, vec3 const& b, plane clip_plane) -> vec3
+        {
+            vec3 result = a;
+
+            switch (clip_plane)
+            {
+            case plane::left:
+            {
+                const auto t = (-1.0_fx - a.x) / (b.x - a.x);
+
+                result.x = -1.0_fx;
+                result.y = a.y + (b.y - a.y) * t;
+                result.z = a.z + (b.z - a.z) * t;
+                break;
+            }
+
+            case plane::right:
+            {
+                const auto t = (1.0_fx - a.x) / (b.x - a.x);
+
+                result.x = 1.0_fx;
+                result.y = a.y + (b.y - a.y) * t;
+                result.z = a.z + (b.z - a.z) * t;
+                break;
+            }
+
+            case plane::bottom:
+            {
+                const auto t = (-1.0_fx - a.y) / (b.y - a.y);
+
+                result.x = a.x + (b.x - a.x) * t;
+                result.y = -1.0_fx;
+                result.z = a.z + (b.z - a.z) * t;
+                break;
+            }
+
+            case plane::top:
+            {
+                const auto t = (1.0_fx - a.y) / (b.y - a.y);
+
+                result.x = a.x + (b.x - a.x) * t;
+                result.y = 1.0_fx;
+                result.z = a.z + (b.z - a.z) * t;
+                break;
+            }
+            }
+
+            return result;
+        };
+
+        std::array<vec3, 6> polygon_a{
+            triangle[0],
+            triangle[1],
+            triangle[2],
+        };
+
+        std::array<vec3, 6> polygon_b{};
+
+        size_t count = 3;
+
+        for (const auto clip_plane : planes)
+        {
+            size_t inside_count = 0;
+
+            for (size_t i = 0; i < count; ++i)
+                inside_count += inside(polygon_a[i], clip_plane);
+
+            // Trivial reject.
+            if (inside_count == 0)
+                return 0;
+
+            // Trivial accept.
+            if (inside_count == count)
+                continue;
+
+            size_t out_count = 0;
+
+            auto previous = polygon_a[count - 1];
+            auto previous_inside = inside(previous, clip_plane);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                const auto current = polygon_a[i];
+                const auto current_inside = inside(current, clip_plane);
+
+                if (current_inside != previous_inside)
+                    polygon_b[out_count++] =
+                        intersect(previous, current, clip_plane);
+
+                if (current_inside)
+                    polygon_b[out_count++] = current;
+
+                previous = current;
+                previous_inside = current_inside;
+            }
+
+            count = out_count;
+            std::swap(polygon_a, polygon_b);
+        }
+
+        // Triangulate the resulting convex polygon as a triangle fan.
+        for (size_t i = 1; i < count - 1; ++i)
+        {
+            const auto out = (i - 1) * 3;
+
+            outVerts[out + 0] = polygon_a[0];
+            outVerts[out + 1] = polygon_a[i];
+            outVerts[out + 2] = polygon_a[i + 1];
+        }
+
+        return (count - 2) * 3;
+    }
+
+    [[nodiscard]] auto clip_quad_ndc_space_(std::array<vec3, 4> const& quad, std::array<vec3, 12>& outVerts) -> size_t
+    {
+        enum class plane
+        {
+            left,
+            right,
+            bottom,
+            top
+        };
+
+        constexpr std::array planes{
+            plane::left,
+            plane::right,
+            plane::bottom,
+            plane::top,
+        };
+
+        const auto inside = [](vec3 const& p, plane clip_plane) -> bool
+        {
+            switch (clip_plane)
+            {
+            case plane::left:   return p.x >= -1.0_fx;
+            case plane::right:  return p.x <=  1.0_fx;
+            case plane::bottom: return p.y >= -1.0_fx;
+            case plane::top:    return p.y <=  1.0_fx;
+            }
+
+            return false;
+        };
+
+        const auto intersect = [](vec3 const& a, vec3 const& b, plane clip_plane) -> vec3
+        {
+            switch (clip_plane)
+            {
+            case plane::left:
+            {
+                const auto t = (-1.0_fx - a.x) / (b.x - a.x);
+                auto p = a + (b - a) * t;
+                p.x = -1.0_fx;
+                return p;
+            }
+
+            case plane::right:
+            {
+                const auto t = (1.0_fx - a.x) / (b.x - a.x);
+                auto p = a + (b - a) * t;
+                p.x = 1.0_fx;
+                return p;
+            }
+
+            case plane::bottom:
+            {
+                const auto t = (-1.0_fx - a.y) / (b.y - a.y);
+                auto p = a + (b - a) * t;
+                p.y = -1.0_fx;
+                return p;
+            }
+
+            case plane::top:
+            {
+                const auto t = (1.0_fx - a.y) / (b.y - a.y);
+                auto p = a + (b - a) * t;
+                p.y = 1.0_fx;
+                return p;
+            }
+            }
+
+            return a;
+        };
+
+        std::array<vec3, 8> polygon{
+            quad[0],
+            quad[1],
+            quad[2],
+            quad[3],
+        };
+
+        std::array<vec3, 8> scratch{};
+
+        size_t count = 4;
+
+        for (const auto clip_plane : planes)
+        {
+            size_t inside_count = 0;
+
+            for (size_t i = 0; i < count; ++i)
+                inside_count += inside(polygon[i], clip_plane);
+
+            // Trivial reject.
+            if (inside_count == 0)
+                return 0;
+
+            // Trivial accept for this plane.
+            if (inside_count == count)
+                continue;
+
+            size_t output_count = 0;
+
+            auto previous = polygon[count - 1];
+            auto previous_inside = inside(previous, clip_plane);
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                const auto current = polygon[i];
+                const auto current_inside = inside(current, clip_plane);
+
+                if (current_inside != previous_inside)
+                    scratch[output_count++] =
+                        intersect(previous, current, clip_plane);
+
+                if (current_inside)
+                    scratch[output_count++] = current;
+
+                previous = current;
+                previous_inside = current_inside;
+            }
+
+            count = output_count;
+            std::swap(polygon, scratch);
+        }
+
+        if (count < 3)
+            return 0;
+
+        // 3 vertices -> one degenerate quad.
+        if (count == 3)
+        {
+            outVerts[0] = polygon[0];
+            outVerts[1] = polygon[1];
+            outVerts[2] = polygon[2];
+            outVerts[3] = polygon[2];
+
+            return 4;
+        }
+
+        // 4 vertices -> one real quad.
+        if (count == 4)
+        {
+            for (size_t i = 0; i < 4; ++i)
+                outVerts[i] = polygon[i];
+
+            return 4;
+        }
+
+        // For 5-8 vertices, emit real quads first and use a degenerate
+        // quad only for the final triangle when necessary.
+        size_t out = 0;
+
+        // A polygon fan produces triangles:
+        //
+        // (0,1,2), (0,2,3), (0,3,4), ...
+        //
+        // Pair adjacent triangles into quads where possible.
+        size_t triangle_count = count - 2;
+        size_t paired_triangles = triangle_count & ~size_t{1};
+
+        for (size_t i = 0; i < paired_triangles; i += 2)
+        {
+            const auto a = i + 1;
+            const auto b = i + 2;
+            const auto c = i + 3;
+
+            outVerts[out++] = polygon[0];
+            outVerts[out++] = polygon[a];
+            outVerts[out++] = polygon[b];
+            outVerts[out++] = polygon[c];
+        }
+
+        // One final triangle remains for odd triangle counts.
+        if (paired_triangles != triangle_count)
+        {
+            const auto i = paired_triangles + 1;
+
+            outVerts[out++] = polygon[0];
+            outVerts[out++] = polygon[i];
+            outVerts[out++] = polygon[i + 1];
+            outVerts[out++] = polygon[i + 1];
+        }
+
+        return out;
+    }
+
     auto project_to_ndc(vec3& p) -> void
     {
-        //p.z.data |= 0b00000000000000000000000000000001;
         p.x = p.x * aspect_ratio_;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
     }
 
-    [[nodiscard]] auto is_cull_passing(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> bool
+    [[nodiscard]] auto is_cull_passing(vec3 const& v0, vec3 const& v1, vec3 const& v2) -> bool
     {
-        vec3 a = v1 - v0;
-        vec3 b = v2 - v0;
-        vec3 normal = vec3::cross(a, b);
+        const auto ax = v1.x - v0.x;
+        const auto ay = v1.y - v0.y;
+        const auto bx = v2.x - v0.x;
+        const auto by = v2.y - v0.y;
 
-        if(cull_ == 1) [[likely]]  { return normal.z > 0.0_fx; }
-        else if(cull_ == 0) { return true; }
-        else { return normal.z <  0.0_fx; }
+        const auto cross = ax * by - ay * bx;
 
+        if (cull_ == FaceCullMode::Back) [[likely]] { return cross > 0.0_fx; }
+        else if (cull_ == FaceCullMode::None) { return true; }
+        else if (cull_ == FaceCullMode::Front) { return cross < 0.0_fx; }
+        else { return false; }
     }
 
     auto to_screen_space(vec3& p) -> void
@@ -723,78 +1211,6 @@ private:
     }
 
 
-    constexpr std::array<vec4, 6> ComputeFrustumPlanesAsVec4(
-        fixed32 nearZ = 0.001_fx,
-        fixed32 farZ  = 1000.0_fx)
-    {
-        std::array<vec4, 6> planes{};
-
-        // 90° vertical FOV:
-        //
-        // tan(FOV_Y / 2) = tan(45°) = 1
-        //
-        // Therefore:
-        //
-        //   x = +/- z * aspect_ratio_
-        //   y = +/- z
-        //
-        // Plane normalization is unnecessary for clipping; only the
-        // sign of the plane equation matters.
-
-        // LEFT:   x >= -z * aspect
-        //         aspect*x + z >= 0
-        planes[0] = vec4{
-            aspect_ratio_,
-            0.0_fx,
-            1.0_fx,
-            0.0_fx
-        };
-
-        // RIGHT:  x <= z * aspect
-        //         -aspect*x + z >= 0
-        planes[1] = vec4{
-            -aspect_ratio_,
-            0.0_fx,
-            1.0_fx,
-            0.0_fx
-        };
-
-        // BOTTOM: y >= -z
-        //         y + z >= 0
-        planes[2] = vec4{
-            0.0_fx,
-            1.0_fx,
-            1.0_fx,
-            0.0_fx
-        };
-
-        // TOP:    y <= z
-        //         -y + z >= 0
-        planes[3] = vec4{
-            0.0_fx,
-            -1.0_fx,
-            1.0_fx,
-            0.0_fx
-        };
-
-        // NEAR:   z >= nearZ
-        planes[4] = vec4{
-            0.0_fx,
-            0.0_fx,
-            1.0_fx,
-            -nearZ
-        };
-
-        // FAR:    z <= farZ
-        planes[5] = vec4{
-            0.0_fx,
-            0.0_fx,
-            -1.0_fx,
-            farZ
-        };
-
-        return planes;
-    }
 
     VERTEX_FUNCTION vf_;
 
@@ -810,14 +1226,12 @@ private:
     fixed32 viewport_width_fx_{0.0_fx};
     fixed32 viewport_height_fx_{0.0_fx};
     fixed32 aspect_ratio_{0.0_fx};
+    fixed32 near_z_{0.0_fx};
 
     std::inplace_vector<vec3,MAX_VERTS> working_vertex_buffer_;
     std::inplace_vector<uint16_t,MAX_VERTS> working_color_buffer_;
 
-    int32_t cull_{1};
-
-    std::array<vec4, 6> frustrum_;
-
+    FaceCullMode cull_{FaceCullMode::All};
 
 
 };
