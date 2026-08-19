@@ -19,7 +19,7 @@ public:
     {
         ctx.setViewPort(160,128);
         ctx.setNearZ(0.01_fx);
-        ctx.setFaceCulling(ffr::FaceCullMode::Back);
+        ctx.setFaceCulling(ffr::FaceCullMode::None);
         ctx.getVertexFunction().camPos = {0_fx,1.3_fx,-1.3_fx};
     }
 
@@ -67,7 +67,7 @@ public:
                     auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
                     ctx.setColorPointer(0, colptr);
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());
-                    //ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::CELL_MESHES[ collision].size());
+                    ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ collision].size());
                 }
 
             }

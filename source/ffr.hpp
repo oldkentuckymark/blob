@@ -428,6 +428,23 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 vec3& v3{working_vertex_buffer_[i+3]};
 
+                std::array<vec3,8> outVerts;
+                auto numverts = clip_quad_near_({v0,v1,v2,v3},outVerts);
+                for(auto j = 0ul; j < numverts; j = j + 4)
+                {
+                    project_to_ndc(outVerts[j]);project_to_ndc(outVerts[j+1]);project_to_ndc(outVerts[j+2]);project_to_ndc(outVerts[j+3]);
+                    if(is_cull_passing(outVerts[j], outVerts[j+1], outVerts[j+2]))
+                    {
+                        std::array<vec3,12> outVerts2;
+                        auto k = clip_quad_ndc_space_({outVerts[j+0],outVerts[j+1],outVerts[j+2],outVerts[j+3]}, outVerts2);
+                        for(auto l = 0ul; l < k; l = l + 4)
+                        {
+                            to_screen_space(outVerts2[l+0]);to_screen_space(outVerts2[l+1]);to_screen_space(outVerts2[l+2]);to_screen_space(outVerts2[l+3]);
+                            quad( outVerts2[l+0].x,outVerts2[l+0].y, outVerts2[l+1].x,outVerts2[l+1].y, outVerts2[l+2].x,outVerts2[l+2].y, outVerts2[l+3].x,outVerts2[l+3].y, ccs );
+                        }
+                    }
+                }
+
 
                 i = i + 3;
                 col = col + 4;
