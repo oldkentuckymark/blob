@@ -161,7 +161,8 @@ public:
                 max_x = v_bot_x;
 
             auto draw = clip_horizontal_line_screen(min_x, v_top_y, max_x);
-            //if(draw == 1)
+            if(draw == 0) {return;}
+            if(draw == 1)
             {
                 lineHorizontal(min_x, v_top_y, max_x, color);
             }
@@ -200,8 +201,8 @@ public:
 
 
             auto draw = clip_horizontal_line_screen(x_a,y,x_b);
-            //if(draw == 0) {return;}
-            //if(draw == 1)
+            if(draw == 0) {return;}
+            if(draw == 1)
             {
                 lineHorizontal(x_a, y, x_b, color);
             }
@@ -242,8 +243,8 @@ public:
         for (int32_t y = v_mid_y; y <= v_bot_y; y++)
         {
             auto draw = clip_horizontal_line_screen(x_a,y,x_b);
-            //if(draw == 0) { return; }
-            //if(draw == 1)
+            if(draw == 0) { return; }
+            if(draw == 1)
             {
                 lineHorizontal(x_a, y, x_b, color);
             }
@@ -273,7 +274,7 @@ public:
     virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
     {
         triangle(x0,y0,x1,y1,x2,y2,color);
-        //triangle(x2,y2,x3,y3,x0,y0,color);
+        triangle(x2,y2,x3,y3,x0,y0,color);
     }
 
     virtual auto clear() -> void {}
@@ -518,24 +519,16 @@ protected:
         return {};
     }
 
-    auto clip_horizontal_line_screen(int32_t& x0, int32_t& y0, int32_t& x1) -> int32_t
+    auto clip_horizontal_line_screen(int32_t const & x0, int32_t const & y0, int32_t const & x1) -> int32_t
     {
-        //need to make copy, cant chanbgg values cause they are need for loop
-        if(x0 > x1) { auto t = x0; x0 = x1; x1 = t; }
-        if(y0 < 0) { return -1; }
-
         if(y0 >= viewport_height_) { return 0; }
 
-
+        if(y0 < 0) { return -1; }
 
         if((x0 < 0 && x1 < 0) || (x0 >= viewport_width_ && x1 >= viewport_width_))
         {
-            //return -1;
+            return -1;
         }
-
-        //if(x0 < 0) { x0 = 0; }
-        //if(x1 >= viewport_width_) { x1 = viewport_width_ - 1; }
-
 
         return 1;
     }

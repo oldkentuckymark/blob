@@ -84,6 +84,10 @@ public:
 
     inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
     {
+        if(x0 > x1) { auto t  = x0; x0 = x1; x1 = t; }
+        if(x0 < 0) { x0 = 0; }
+        if(x1 >= viewport_width_) { x1 = viewport_width_ - 1; }
+
         for(uint16_t* p = (uint16_t*)&vram[y0*width+x0]; p <= &vram[y0*width+x1]; ++p)
         {
             *p = color;

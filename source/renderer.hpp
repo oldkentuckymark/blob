@@ -18,7 +18,7 @@ public:
     Renderer()
     {
         ctx.setViewPort(160,128);
-        ctx.setNearZ(0.1_fx);
+        ctx.setNearZ(0.3_fx);
         ctx.setFaceCulling(ffr::FaceCullMode::None);
         ctx.getVertexFunction().camPos = {0_fx,1.3_fx,-1.3_fx};
     }
