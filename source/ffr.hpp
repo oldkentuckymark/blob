@@ -167,6 +167,7 @@ public:
                 lineHorizontal(min_x, v_top_y, max_x, color);
             }
             return;
+
         }
 
         // --- 3. Setup Bresenham Edge Steppers ---
@@ -206,6 +207,7 @@ public:
             {
                 lineHorizontal(x_a, y, x_b, color);
             }
+
             // Advance stepper A along the long edge
             error_a -= dx_a;
             while (error_a < 0)
@@ -239,6 +241,8 @@ public:
         }
         error_b = dy_b >> 1;
         x_b = v_mid_x;
+
+
 
         for (int32_t y = v_mid_y; y <= v_bot_y; y++)
         {
@@ -521,7 +525,7 @@ protected:
     auto clip_quad_near(vec3 const & v0, vec3 const & v1, vec3 const & v2, vec3 const & v3) -> std::inplace_vector<vec3, 8>
     {
         //trivial pass
-        if(is_point_inside_near(v0) && is_point_inside_near(v1) && is_point_inside_near(v2) && (is_point_inside_near(v2)))
+        if(is_point_inside_near(v0) && is_point_inside_near(v1) && is_point_inside_near(v2) && (is_point_inside_near(v3)))
         {
             return {v0,v1,v2,v3};
         }
@@ -536,13 +540,20 @@ protected:
         return {};
     }
 
-    auto clip_horizontal_line_screen(int32_t const & x0, int32_t const & y0, int32_t const & x1) -> int32_t
+    auto clip_horizontal_line_screen(int16_t const & x0, int16_t const & y0, int16_t const & x1) -> int32_t
     {
+
         if(y0 >= viewport_height_) { return 0; }
 
         if(y0 < 0) { return -1; }
 
-        if((x0 < 0 && x1 < 0) || (x0 >= viewport_width_ && x1 >= viewport_width_))
+
+        //this one
+        if(x0 < 0 && x1 < 0)
+        {
+            return -1;
+        }
+        if (x0 >= viewport_width_ && x1 >= viewport_width_)
         {
             return -1;
         }
@@ -595,8 +606,8 @@ protected:
     uint16_t color_stride_{0};
     DrawType current_draw_type_{DrawType::Points};
 
-    uint32_t viewport_width_{0};
-    uint32_t viewport_height_{0};
+    int16_t viewport_width_{0};
+    int16_t viewport_height_{0};
     fixed32 viewport_width_fx_{0.0_fx};
     fixed32 viewport_height_fx_{0.0_fx};
     fixed32 aspect_ratio_{0.0_fx};

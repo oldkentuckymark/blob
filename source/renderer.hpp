@@ -18,8 +18,8 @@ public:
     Renderer()
     {
         ctx.setViewPort(160,128);
-        ctx.setNearZ(0.3_fx);
-        ctx.getVertexFunction().camPos = {0._fx,1.3_fx,-1.3_fx};
+        ctx.setNearZ(0.5_fx);
+        ctx.getVertexFunction().camPos = {0._fx,1.3_fx,5.3_fx};
     }
 
     ~Renderer()
@@ -51,7 +51,7 @@ public:
     {
         ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
-        //ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z - 0.005_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z - 0.005_fx;
 
         for(int16_t z = 6; z >=0; --z)
         {
