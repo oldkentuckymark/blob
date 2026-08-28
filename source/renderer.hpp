@@ -19,7 +19,6 @@ public:
     {
         ctx.setViewPort(160,128);
         ctx.setNearZ(0.3_fx);
-        ctx.setFaceCulling(ffr::FaceCullMode::None);
         ctx.getVertexFunction().camPos = {0_fx,1.3_fx,-1.3_fx};
     }
 
@@ -50,6 +49,7 @@ public:
 
     auto draw() -> void
     {
+        ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
         ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.05_fx;
 
@@ -58,16 +58,17 @@ public:
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
                 auto collision {static_cast<size_t>(current_level_->getCell(x,z).collision)};
-
+                auto& cell {current_level_->getCell(x,z)};
 
                 if(collision)
                 {
-
+                    if(cell.collision == Cell::Collision::TunnelLow || cell.collision == Cell::Collision::TunnelMid || cell.collision == Cell::Collision::TunnelHigh) {ctx.setFaceCulling(ffr::FaceCullMode::None);}
                     ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)) - 0.5_fx,0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
                     auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
                     ctx.setColorPointer(0, colptr);
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());
                     ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ collision].size());
+                    ctx.setFaceCulling(ffr::FaceCullMode::Back);
                 }
 
             }

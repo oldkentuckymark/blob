@@ -578,7 +578,7 @@ public:
 
 
 
-constexpr static Level<"../data/levels/level0.txt"> level0(100,500,ffm::vec3{0.5_fx,-1.0_fx,0.3_fx});
+constexpr static Level<"../data/levels/level0.txt"> level0(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
 constexpr static Level<"../data/levels/level1.txt"> level1(100,500);
 
 

@@ -303,6 +303,24 @@ public:
         aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
     }
 
+    [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
+    {
+        return vf_;
+    }
+
+    auto setFaceCulling(FaceCullMode const mode) -> void
+    {
+        cull_ = mode;
+    }
+
+    auto setNearZ(fixed32 const z) -> void
+    {
+        near_z_ = z;
+    }
+
+
+
+
     auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
     {
         current_draw_type_ = dt;
@@ -422,16 +440,20 @@ public:
                 vec3& v2{working_vertex_buffer_[i+2]};
                 vec3& v3{working_vertex_buffer_[i+3]};
 
-                if(is_cull_passing(v0,v1,v2))
-                {
+
                     auto outVerts = clip_quad_near(v0,v1,v2,v3);
                     for(auto k = 0ul; k < outVerts.size(); k = k + 4)
                     {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);project_to_ndc(outVerts[k+3]);
-                        to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);to_screen_space(outVerts[k+3]);
-                        quad(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,outVerts[k+3].x,outVerts[k+3].y,ccs);
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        {
+                            to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);to_screen_space(outVerts[k+3]);
+                            quad(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,outVerts[k+3].x,outVerts[k+3].y,ccs);
+                        }
+
+
                     }
-                }
+
 
                 i = i + 3;
                 col = col + 4;
@@ -440,20 +462,7 @@ public:
 
     }
 
-    [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
-    {
-        return vf_;
-    }
 
-    auto setFaceCulling(FaceCullMode const mode) -> void
-    {
-        cull_ = mode;
-    }
-
-    auto setNearZ(fixed32 const z) -> void
-    {
-        near_z_ = z;
-    }
 
 
 protected:
@@ -542,14 +551,20 @@ protected:
 
     [[nodiscard]] auto is_cull_passing(vec3 const& v0, vec3 const& v1, vec3 const& v2) -> bool
     {
-        const vec3 ab = v1 - v0;
-        const vec3 ac = v2 - v1;
-        const vec3 n  = vec3::cross(ab, ac);
+        if (cull_ == FaceCullMode::None) { return true; }
+        else if (cull_ == FaceCullMode::All) { return false; }
+        else
+        {
+            const auto ab_x = v1.x - v0.x;
+            const auto ab_y = v1.y - v0.y;
+            const auto ac_x = v2.x - v1.x;
+            const auto ac_y = v2.y - v1.y;
+            const auto nz = ab_x * ac_y - ab_y * ac_x;
 
-        if (cull_ == FaceCullMode::Back) [[likely]] { return n.z > 0.0_fx; }
-        else if (cull_ == FaceCullMode::None) { return true; }
-        else if (cull_ == FaceCullMode::Front) { return n.z < 0.0_fx; }
-        else { return false; }
+            if (cull_ == FaceCullMode::Back) [[likely]] { return nz > 0.0_fx; }
+            else if (cull_ == FaceCullMode::Front) { return nz < 0.0_fx; }
+        }
+        return false;
     }
 
     auto to_screen_space(vec3& p) -> void

@@ -449,10 +449,11 @@ public:
         return {(a.x * b.x) + (a.y * b.y)};
     }
 
-    constexpr static auto cross(vec2 const & a, vec2 const & b) -> vec2
+    [[nodiscard]] constexpr static auto cross(vec2 const& a, vec2 const& b) -> fixed32
     {
-        return {a.x * b.y - a.y * b.x};
+        return (a.x * b.y) - (a.y * b.x);
     }
+
 
     [[nodiscard]] constexpr auto length() const -> fixed32
     {
@@ -463,10 +464,10 @@ public:
     }
 };
 
-class vec3 : public vec2
+class vec3
 {
 public:
-    fixed32 z;
+    fixed32 x,y,z;
 
     constexpr auto operator+(vec3 const &that) const -> vec3
     {
@@ -531,10 +532,10 @@ public:
 
 };
 
-class vec4 : public vec3
+class vec4
 {
 public:
-    fixed32 w = 1.0_fx;
+    fixed32 x,y,z,w = 1.0_fx;
 
     constexpr auto operator+(vec4 const &that) const -> vec4
     {
