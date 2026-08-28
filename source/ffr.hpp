@@ -412,10 +412,10 @@ public:
                     auto outVerts = clip_triangle_near(v0,v1,v2);
                     for(auto k = 0ul; k < outVerts.size(); k = k + 3)
                     {
-
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);
-                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);
                         triangle(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,ccs);
@@ -449,10 +449,10 @@ public:
                     auto outVerts = clip_quad_near(v0,v1,v2,v3);
                     for(auto k = 0ul; k < outVerts.size(); k = k + 4)
                     {
-                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);project_to_ndc(outVerts[k+3]);
-                        if(true || is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                             to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);to_screen_space(outVerts[k+3]);
                             quad(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,outVerts[k+3].x,outVerts[k+3].y,ccs);
@@ -569,7 +569,7 @@ protected:
             const auto ac_y = v2.y - v1.y;
             const auto nz = ab_x * ac_y - ab_y * ac_x;
 
-            if (cull_ == FaceCullMode::Back) [[likely]] { return nz > 0.0_fx; }
+            if (cull_ == FaceCullMode::Back) [[likely]] { return nz >= 0.0_fx; }
             else if (cull_ == FaceCullMode::Front) { return nz < 0.0_fx; }
         }
         return false;
