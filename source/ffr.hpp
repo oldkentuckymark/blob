@@ -34,7 +34,7 @@ enum class FaceCullMode : int32_t
 template<class VERTEX_FUNCTION>
 class Context
 {
-    static constexpr size_t MAX_VERTS{128};
+    static constexpr size_t MAX_VERTS{256};
 
 public:
     Context() = default;
@@ -408,16 +408,21 @@ public:
                 vec3& v1{working_vertex_buffer_[i+1]};
                 vec3& v2{working_vertex_buffer_[i+2]};
 
-                if(is_cull_passing(v0,v1,v2))
-                {
+
                     auto outVerts = clip_triangle_near(v0,v1,v2);
                     for(auto k = 0ul; k < outVerts.size(); k = k + 3)
                     {
+
+                        {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        {
                         to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);
                         triangle(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,ccs);
+                        }
+                        }
                     }
-                }
+
 
                 i = i + 2;
                 col = col + 3;
@@ -444,11 +449,14 @@ public:
                     auto outVerts = clip_quad_near(v0,v1,v2,v3);
                     for(auto k = 0ul; k < outVerts.size(); k = k + 4)
                     {
+                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);project_to_ndc(outVerts[k+3]);
-                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(true || is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                             to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);to_screen_space(outVerts[k+3]);
                             quad(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,outVerts[k+3].x,outVerts[k+3].y,ccs);
+                        }
                         }
 
 
