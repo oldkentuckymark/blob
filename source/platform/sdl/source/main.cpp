@@ -9,7 +9,7 @@
 #include "mesh.hpp"
 #include "renderer.hpp"
 #include "level.hpp"
-
+#include "game.hpp"
 
 #ifdef GBA
 #define IWRAM_CODE	__attribute__((section(".iwram"), long_call))

@@ -9,7 +9,6 @@ public:
 
     ffm::vec3 position, velocity;
 
-
 private:
 
 

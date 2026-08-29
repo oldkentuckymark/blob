@@ -580,9 +580,42 @@ public:
 
 constexpr static Level<"../data/levels/level0.txt"> level0(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
 constexpr static Level<"../data/levels/level1.txt"> level1(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level2(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level3(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level4(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level5(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level6(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level7(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level8(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level9(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level10(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level11(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level12(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level13(100,500);
+constexpr static Level<"../data/levels/level0.txt"> level14(100,500,ffm::vec3{0.1_fx,-1.0_fx,0.1_fx});
+constexpr static Level<"../data/levels/level1.txt"> level15(100,500);
 
 
+constexpr static std::array<ILevel const *, 16> Levels
+{
+    &level0,
+    &level1,
+    &level2,
+    &level3,
+    &level4,
+    &level5,
+    &level6,
+    &level7,
+    &level8,
+    &level9,
+    &level10,
+    &level11,
+    &level12,
+    &level13,
+    &level14,
+    &level15,
 
+};
 
 
 #endif // LEVEL_HPP
