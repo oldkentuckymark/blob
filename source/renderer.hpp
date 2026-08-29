@@ -19,7 +19,7 @@ public:
     {
         ctx.setViewPort(160,128);
         ctx.setNearZ(0.5_fx);
-        ctx.getVertexFunction().camPos = {0._fx,1.3_fx,5.3_fx};
+        ctx.getVertexFunction().camPos = {0.5_fx,2_fx,-2.0_fx};
     }
 
     ~Renderer()
@@ -51,7 +51,7 @@ public:
     {
         ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z - 0.1_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.1_fx;
 
         for(int16_t z = 6; z >=0; --z)
         {
@@ -63,7 +63,7 @@ public:
                 if(collision)
                 {
                     if(cell.collision == Cell::Collision::TunnelLow || cell.collision == Cell::Collision::TunnelMid || cell.collision == Cell::Collision::TunnelHigh) {ctx.setFaceCulling(ffr::FaceCullMode::None);}
-                    ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)) - 0.5_fx,0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
+                    ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)),0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
                     auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
                     ctx.setColorPointer(0, colptr);
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());

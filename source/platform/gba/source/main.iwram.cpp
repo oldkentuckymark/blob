@@ -25,11 +25,7 @@
 
 #define KEY_MASK     0xFC00
 
-#ifdef GBA
-#define IWRAM_CODE __attribute__((section(".iwram"), long_call))
-#else
-#define IWRAM_CODE
-#endif
+
 
 class FFT
 {
