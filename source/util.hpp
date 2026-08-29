@@ -124,7 +124,7 @@ template<class T, std::size_t N>
                                             ffm::vec3 const & surfacecolor,
                                             ffm::vec3 const & lightdirection,
                                             ffm::vec3 const & lightcolor = {1.0_fx,1.0_fx,1.0_fx},
-                                            ffm::vec3 const & ambientcolor = {0.45_fx,0.45_fx,0.45_fx}) -> uint16_t
+                                            ffm::vec3 const & ambientcolor = {0.15_fx,0.15_fx,0.15_fx}) -> uint16_t
 {
     ffm::vec3 lightdirectionnorm = lightdirection.normalize();
     auto d = ffm::max(ffm::vec3::dot(normal, lightdirectionnorm),0.0_fx);
