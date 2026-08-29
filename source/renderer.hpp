@@ -18,7 +18,7 @@ public:
     Renderer()
     {
         ctx.setViewPort(160,128);
-        ctx.setNearZ(0.5_fx);
+        ctx.setNearZ(1.0_fx);
         ctx.getVertexFunction().camPos = {0.5_fx,2_fx,-2.0_fx};
     }
 

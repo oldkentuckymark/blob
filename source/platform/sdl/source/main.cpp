@@ -91,14 +91,11 @@ public:
         SDL_RenderPresent(ren);
     }
 
-    auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void
+    auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void override
     {
-        if(x0 > x1) { auto t  = x0; x0 = x1; x1 = t; }
-        if(x0 < 0) { x0 = 0; }
-        if(x1 >= viewport_width_) { x1 = viewport_width_ - 1; }
         auto cc = util::Convert555to888(color);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
-        SDL_RenderLine(ren, x1,y0,x0,y0);
+        SDL_RenderLine(ren, x0,y0,x1,y0);
     }
 
     auto plot(int16_t x, int16_t y, uint16_t c) -> void override

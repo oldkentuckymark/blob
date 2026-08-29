@@ -150,6 +150,18 @@ constexpr auto combine(uint16_t const high, uint16_t const low) -> uint32_t
     return (static_cast<uint32_t>(high) << 16) | static_cast<uint32_t>(low);
 }
 
+constexpr auto swap(auto& a, decltype(a)& b) -> void
+{
+    auto t = a;
+    a = b;
+    b = t;
+}
+
+constexpr auto sort(auto& a, decltype(a)& b) -> void
+{
+    if(a > b) {swap(a,b);}
+}
+
 template<size_t N>
 struct ConstexprString
 {

@@ -5,6 +5,8 @@
 #include <inplace_vector>
 #include <span>
 
+#include "color.hpp"
+#include "util.hpp"
 #include "ffm.hpp"
 
 namespace ffr
@@ -46,9 +48,9 @@ public:
     Context(Context&&) = delete;
     auto operator = (Context&&) = delete;
 
-    virtual auto plot(int16_t x, int16_t y, uint16_t color) -> void {}
+    virtual auto plot(int16_t x, int16_t y, Color color) -> void {}
 
-    virtual auto line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) -> void
+    virtual auto line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) -> void
     {
         bool const steep = ffm::abs(y1 - y0) > ffm::abs(x1 - x0);
 
@@ -109,6 +111,79 @@ public:
         line(x0, y0, x0, y1, color);
     }
 
+    auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color) -> void
+    {
+        // Sort so y0 <= y1 <= y2 (top -> bottom), keeping x/y pairs together.
+        if (y0 > y1) { util::swap(x0, x1); util::swap(y0, y1); }
+        if (y1 > y2) { util::swap(x1, x2); util::swap(y1, y2); }
+        if (y0 > y1) { util::swap(x0, x1); util::swap(y0, y1); }
+
+        if (y0 == y2)
+        {
+            return; // zero screen-space height
+        }
+
+        fixed32 const fx0 = fixed32(x0);
+        fixed32 const fy0 = fixed32(y0);
+        fixed32 const fx1 = fixed32(x1);
+        fixed32 const fy1 = fixed32(y1);
+        fixed32 const fx2 = fixed32(x2);
+        fixed32 const fy2 = fixed32(y2);
+
+        // Long edge spans the full triangle height, v0 -> v2.
+        fixed32 const invslopeLong = (fx2 - fx0) / (fy2 - fy0);
+
+        fixed32 xLong  = fx0;
+        fixed32 xShort = fx0;
+
+        // Upper half, v0 -> v1.
+        if (y1 > y0)
+        {
+            fixed32 const invslopeTop = (fx1 - fx0) / (fy1 - fy0);
+            for (int y = y0; y < y1; ++y)
+            {
+                int16_t xx0 = xLong; int16_t yy0 = y; int16_t xx1 = xShort;
+                auto r = clip_horizontal_line_screen(xx0,yy0,xx1);
+                if(r == 0) {return;}
+                if(r == 1)
+                {
+                    lineHorizontal(xx0, yy0, xx1, color);
+                }
+                xLong  = xLong + invslopeLong;
+                xShort = xShort + invslopeTop;
+            }
+        }
+
+        xShort = fx1; // resync at the mid vertex; avoids drift from the upper loop
+
+        // Lower half, v1 -> v2.
+        if (y2 > y1)
+        {
+            fixed32 const invslopeBottom = (fx2 - fx1) / (fy2 - fy1);
+            for (int y = y1; y < y2; ++y)
+            {
+                int16_t xx0 = xLong; int16_t yy0 = y; int16_t xx1 = xShort;
+                util::sort(xx0,xx1);
+                auto r = clip_horizontal_line_screen(xx0,yy0,xx1);
+                if(r == 0) {return;}
+                if(r == 1)
+                {
+                    lineHorizontal(xx0, yy0, xx1, color);
+                }
+                xLong  = xLong + invslopeLong;
+                xShort = xShort + invslopeBottom;
+            }
+        }
+
+        int16_t xx0 = xLong; int16_t yy0 = y2; int16_t xx1 = xShort;
+        auto r = clip_horizontal_line_screen(xx0,yy0,xx1);
+        if(r == 1)
+        {
+            lineHorizontal(xx0, y2, xx1, color); // apex / final row
+        }
+    }
+
+    /*
     virtual auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) -> void
     {
         int32_t v_top_x = x0, v_top_y = y0;
@@ -275,6 +350,7 @@ public:
             }
         }
     }
+    */
 
     virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
     {
@@ -530,24 +606,15 @@ protected:
         return {};
     }
 
-    auto clip_horizontal_line_screen(int16_t const & x0, int16_t const & y0, int16_t const & x1) -> int32_t
+    auto clip_horizontal_line_screen(int16_t& x0, int16_t& y0, int16_t& x1) -> int32_t
     {
-
-        if(y0 >= viewport_height_) { return 0; }
-
-        if(y0 < 0) { return -1; }
-
-
-        //this one
-        if(x0 < 0 && x1 < 0)
-        {
-            return -1;
-        }
-        if (x0 >= viewport_width_ && x1 >= viewport_width_)
-        {
-            return -1;
-        }
-
+        if (y0 < 0)                { return -1; }   // above screen: skip this row only
+        if (y0 >= viewport_height_) { return 0; }    // below screen: nothing further can be visible
+        util::sort(x0,x1);
+        if (x0 < 0 && x1 < 0)      { return -1; }
+        if (x0 >= viewport_width_ && x1 >= viewport_width_) { return -1; }
+        if(x0 < 0) {x0 = 0;}
+        if(x1 >= viewport_width_) {x1 = viewport_width_ - 1;}
         return 1;
     }
 
