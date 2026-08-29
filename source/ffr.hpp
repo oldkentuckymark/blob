@@ -608,6 +608,8 @@ protected:
     auto project_to_ndc(vec3& p) -> void
     {
         p.x = p.x * aspect_ratio_;
+        //p.x = p.x / p.z;
+        //p.y = p.y / p.z;
         p.x = p.x / p.z;
         p.y = p.y / p.z;
     }

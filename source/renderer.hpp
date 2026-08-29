@@ -51,9 +51,11 @@ public:
     {
         ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z + 0.1_fx;
+        auto& campos = ctx.getVertexFunction().camPos;
+        campos = current_player_->position + ffm::vec3{0.0_fx,2.0_fx,-2.0_fx};
+        campos.x = 0.5_fx;
 
-        for(int16_t z = 6; z >=0; --z)
+        for(int16_t z = 4; z >=0; --z)
         {
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {

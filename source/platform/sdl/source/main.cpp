@@ -11,21 +11,6 @@
 #include "level.hpp"
 #include "game.hpp"
 
-#ifdef GBA
-#define IWRAM_CODE	__attribute__((section(".iwram"), long_call))
-#define EWRAM_CODE	__attribute__((section(".ewram"), long_call))
-
-#define IWRAM_DATA	__attribute__((section(".iwram_data")))
-#define EWRAM_DATA	__attribute__((section(".ewram_data")))
-
-#define ARM_CODE	__attribute__((target("arm")))
-#define THUMB_CODE	__attribute__((target("thumb")))
-
-#define EWRAM_BSS	__attribute__((section(".sbss")))
-#define ALIGN(m)	__attribute__((aligned (m)))
-#else
-#define IWRAM_CODE
-#endif
 
 class VertexFunction
 {
@@ -139,11 +124,10 @@ auto main() -> int
     auto c1 = std::chrono::steady_clock::now();
     auto c2 = c1;
 
+    Game game;
     Renderer<Context> renderer;
 
-    Player player;
-
-    renderer.setPlayer(&player);
+    renderer.setPlayer(&game.player());
     renderer.setPlayerMesh(Mesh::SHIP_MESH);
     renderer.setDrawDistance(10);
     renderer.setLevel(&level0);
@@ -151,7 +135,7 @@ auto main() -> int
     bool running = true;
     while (running)
     {
-        bool inputs[10] = {};
+        std::array<bool,10> inputs{};
         SDL_Event e;
         while (SDL_PollEvent(&e))
         {
@@ -213,9 +197,13 @@ auto main() -> int
         }
         }
 
+
         c2 = std::chrono::steady_clock::now();
         if(std::chrono::duration_cast<std::chrono::milliseconds>( c2.time_since_epoch()-c1.time_since_epoch()).count() >= 16)
         {
+
+            game.processInputs(inputs);
+            game.update();
             renderer.draw();
 
             auto dt = static_cast<uint16_t>(std::chrono::duration_cast<std::chrono::milliseconds>(c2-c1).count());
@@ -226,9 +214,6 @@ auto main() -> int
 
 
     }
-//color buffer ptrs not being set right
-
-
 
     return 0;
 }

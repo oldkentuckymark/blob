@@ -11,6 +11,7 @@
 #include "mesh.hpp"
 #include "level.hpp"
 #include "renderer.hpp"
+#include "game.hpp"
 
 #define KEY_A        0x0001
 #define KEY_B        0x0002
@@ -187,25 +188,35 @@ int main(void)
     irqInit();
     //irqSet( IRQ_VBLANK, VblankInterrupt);
 
+    Game game;
     Renderer<Context> renderer;
 
-    Player player;
-
-    renderer.setPlayer(&player);
+    renderer.setPlayer(&game.player());
     renderer.setPlayerMesh(Mesh::SHIP_MESH);
     renderer.setDrawDistance(10);
     renderer.setLevel(&level0);
 
-
-
+    std::array<bool,10> inputs{};
 
     while (true)
     {
-        bool inputs[10] = {};
-        //inputs[static_cast<uint16_t>(Game::Input::A)] = getKeyState(KEY_A);
+        if(bool doinput = true)
+        {
+            inputs[0] = getKeyState(KEY_A);
+            inputs[1] = getKeyState(KEY_B);
+            inputs[2] = getKeyState(KEY_SELECT);
+            inputs[3] = getKeyState(KEY_START);
+            inputs[4] = getKeyState(KEY_RIGHT);
+            inputs[5] = getKeyState(KEY_LEFT);
+            inputs[6] = getKeyState(KEY_UP);
+            inputs[7] = getKeyState(KEY_DOWN);
+            inputs[8] = getKeyState(KEY_R);
+            inputs[9] = getKeyState(KEY_L);
+        }
 
 
-
+        game.processInputs(inputs);
+        game.update();
         renderer.draw();
     }
 

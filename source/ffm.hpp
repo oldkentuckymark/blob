@@ -8,6 +8,10 @@
 namespace ffm
 {
 
+constexpr uint32_t INVZ_STEPS = 8;
+constexpr uint32_t INVZ_MAX = 256;
+constexpr size_t   INVZ_N     = INVZ_STEPS * (INVZ_MAX + 1);
+
 class fixed16
 {
 public:
@@ -137,7 +141,7 @@ public:
         return r;
     }
 
-    constexpr auto operator/(fixed32 const that) const -> fixed32
+    constexpr auto operator|(fixed32 const that) const -> fixed32
     {
         fixed32 r;
         r.data = (int64_t(data) * FIX_SCALE) / (that.data);
@@ -174,6 +178,55 @@ public:
     constexpr auto operator>=(fixed32 const &that) const -> bool
     {
         return this->data >= that.data;
+    }
+
+private:
+    consteval static auto makeinvzTable() -> std::array<fixed32, INVZ_N>
+    {
+        std::array<fixed32, INVZ_N> r;
+        double s = 1.0 / INVZ_STEPS;
+        double x = 0.0;
+
+        x = x + s;
+        for (auto i = 1ul; i < INVZ_N; ++i)
+        {
+            r[i] = fixed32(1.0 / x);
+            x = x + s;
+        }
+
+        return r;
+    }
+
+    [[nodiscard]] constexpr static auto invZ(fixed32 const z) -> fixed32
+    {
+        constexpr static std::array<fixed32, INVZ_N> invzlut{makeinvzTable()};
+
+        constexpr auto log2Pow2 = [](uint32_t v) consteval -> int32_t
+        {
+            int32_t r = 0;
+            while (v >>= 1) ++r;
+            return r;
+        };
+
+        constexpr int32_t SHIFT = fixed32::FIX_SHIFT - log2Pow2(INVZ_STEPS);
+
+        fixed32 v = z;
+        if(z.data < 0) { v.data = -v.data;}
+
+        auto const idx = static_cast<std::size_t>(v.data >> SHIFT);
+
+        fixed32 r = invzlut[idx];
+        if(z.data < 0) {r.data = -r.data;}
+        return r;
+    }
+
+public:
+
+    constexpr auto operator/(fixed32 const &that) const -> fixed32
+    {
+        fixed32 r;
+        r = (*this) * invZ(that);
+        return r;
     }
 
     constexpr auto doubled() const -> fixed32
@@ -217,11 +270,13 @@ namespace ffm
 
 
 
-constexpr std::uint32_t GAMDEG_IN_CIRCLE = 512; //360 = degrees, 21600 = minutes
+constexpr uint32_t GAMDEG_IN_CIRCLE = 512; //360 = degrees, 21600 = minutes
 constexpr fixed32 TAU = 6.28318530_fx;
 constexpr double TAUF = 6.28318530;
 constexpr double RAD_TO_GAMDEGF = GAMDEG_IN_CIRCLE / TAUF;
 constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
+
+
 
 [[nodiscard]] constexpr auto factorial(auto const n) -> decltype(n)
 {
@@ -245,6 +300,11 @@ constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
 namespace
 {
 using LUT = std::array<fixed32, GAMDEG_IN_CIRCLE>;
+
+
+
+
+
 
 consteval auto taylorSin(double const x) -> double
 {
@@ -327,7 +387,7 @@ consteval auto makeInvsqrtTable() -> LUT
     r[0] = 0.0_fx;
     for(auto i = 1ul; i < r.size(); ++i)
     {
-        double const x = 0.0; //1.0 / std::sqrt(i);
+        double const x = 1.0 / std::sqrt(static_cast<double>(i));
         fixed32 const y{x};
         r[i] = y;
     }
@@ -337,6 +397,7 @@ consteval auto makeInvsqrtTable() -> LUT
 
 
 } // namespace
+
 
 [[nodiscard]] constexpr auto clampGamdeg(int16_t gamdeg) -> int16_t
 {
