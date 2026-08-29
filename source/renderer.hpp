@@ -18,8 +18,9 @@ public:
     Renderer()
     {
         ctx.setViewPort(160,128);
-        ctx.setNearZ(1.0_fx);
+        ctx.setNearZ(0.6_fx);
         ctx.getVertexFunction().camPos = {0.5_fx,2_fx,-2.0_fx};
+
     }
 
     ~Renderer()
@@ -55,8 +56,12 @@ public:
         campos = current_player_->position + ffm::vec3{0.0_fx,2.0_fx,-2.0_fx};
         campos.x = 0.5_fx;
 
-        for(int16_t z = 4; z >=0; --z)
+        int16_t const pz = static_cast<int16_t>(current_player_->position.z) / 2;
+
+        for(int16_t z = pz + draw_distance_; z >= pz; --z)
         {
+            if(z < 0) {break;}
+            if(z >= current_level_->getLength()) {continue;}
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
                 auto collision {static_cast<size_t>(current_level_->getCell(x,z).collision)};
@@ -94,7 +99,7 @@ public:
 private:
     Context ctx;
 
-    uint16_t draw_distance_{0};
+    int16_t draw_distance_{0};
 
     ILevel const * current_level_{nullptr};
 

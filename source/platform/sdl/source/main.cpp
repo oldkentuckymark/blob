@@ -126,7 +126,7 @@ auto main() -> int
 
     renderer.setPlayer(&game.player());
     renderer.setPlayerMesh(Mesh::SHIP_MESH);
-    renderer.setDrawDistance(10);
+    renderer.setDrawDistance(8);
     renderer.setLevel(&level0);
 
     bool running = true;
