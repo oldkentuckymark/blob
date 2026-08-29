@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdint>
 #include <inplace_vector>
+#include <span>
 
 #include "ffm.hpp"
 
@@ -408,12 +409,7 @@ public:
             }
             else if(current_draw_type_ == DrawType::Triangles)
             {
-                vec3& v0{working_vertex_buffer_[i]};
-                vec3& v1{working_vertex_buffer_[i+1]};
-                vec3& v2{working_vertex_buffer_[i+2]};
-
-
-                    auto outVerts = clip_triangle_near(v0,v1,v2);
+                    auto outVerts = clip_polygon_near_z<3>(std::span<vec3,3>(&working_vertex_buffer_[i],3));
                     for(auto k = 0ul; k < outVerts.size(); k = k + 3)
                     {
                         if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
@@ -444,13 +440,7 @@ public:
             }
             else if(current_draw_type_ == DrawType::Quads)
             {
-                vec3& v0{working_vertex_buffer_[i]};
-                vec3& v1{working_vertex_buffer_[i+1]};
-                vec3& v2{working_vertex_buffer_[i+2]};
-                vec3& v3{working_vertex_buffer_[i+3]};
-
-
-                    auto outVerts = clip_quad_near(v0,v1,v2,v3);
+                    auto outVerts = clip_polygon_near_z<4>(std::span<vec3,4>(&working_vertex_buffer_[i],4));
                     for(auto k = 0ul; k < outVerts.size(); k = k + 4)
                     {
                         if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
@@ -559,6 +549,60 @@ protected:
         }
 
         return 1;
+    }
+
+    template <int N> requires (N == 3 || N == 4)
+    [[nodiscard]] auto clip_polygon_near_z(std::span<vec3 const, N> const verts) -> std::inplace_vector<vec3, ((5 - 2 + (N - 2) - 1) / (N - 2)) * N>
+    {
+
+        std::inplace_vector<vec3, 5> clipped;
+
+        for (std::size_t i = 0; i < verts.size(); ++i)
+        {
+            std::size_t next_i = i + 1 == verts.size() ? 0 : i + 1;
+            vec3 const& current = verts[i];
+            vec3 const& next = verts[next_i];
+
+            const bool currentIn = current.z >= near_z_;
+            const bool nextIn = next.z >= near_z_;
+
+            if (currentIn)
+            {
+                clipped.emplace_back(current);
+            }
+
+            if (currentIn != nextIn)
+            {
+                const fixed32 t = (near_z_ - current.z) / (next.z - current.z);
+                clipped.emplace_back( current.x + (next.x - current.x) * t, current.y + (next.y - current.y) * t, current.z + (next.z - current.z) * t );
+            }
+        }
+
+        std::inplace_vector<vec3, ((5 - 2 + (N - 2) - 1) / (N - 2)) * N> output;
+
+        const std::size_t m = clipped.size();
+
+        if constexpr(N == 3)
+        {
+            for (std::size_t i = 1; i + 1 < m; ++i)
+            {
+                output.push_back(clipped[0]);
+                output.push_back(clipped[i]);
+                output.push_back(clipped[i + 1]);
+            }
+        }
+        else if constexpr (N == 4)
+        {
+            for (std::size_t i = 1; i + 1 < m; i += 2)
+            {
+                output.push_back(clipped[0]);
+                output.push_back(clipped[i]);
+                output.push_back(clipped[i + 1]);
+                output.push_back(i + 2 < m ? clipped[i + 2] : clipped[i + 1]);
+            }
+        }
+
+        return output;
     }
 
     auto project_to_ndc(vec3& p) -> void

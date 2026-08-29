@@ -51,7 +51,7 @@ public:
     {
         ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
-        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z - 0.005_fx;
+        ctx.getVertexFunction().camPos.z = ctx.getVertexFunction().camPos.z - 0.1_fx;
 
         for(int16_t z = 6; z >=0; --z)
         {
