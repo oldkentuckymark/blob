@@ -71,10 +71,14 @@ public:
         SDL_Init(SDL_INIT_VIDEO);
         SDL_CreateWindowAndRenderer("blob",240*4,160*4,0,&win,&ren);
         SDL_SetRenderScale(ren,4.0f,4.0f);
+        tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 160,128);
+        SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
+        SDL_SetRenderTarget(ren,tex);
     }
 
     ~Context()
     {
+        SDL_DestroyTexture(tex);
         SDL_DestroyRenderer(ren);
         SDL_DestroyWindow(win);
     }
@@ -88,7 +92,10 @@ public:
     auto present() -> void
     {
 
+        SDL_SetRenderTarget(ren,nullptr);
+        SDL_RenderTexture(ren,tex,nullptr,nullptr);
         SDL_RenderPresent(ren);
+        SDL_SetRenderTarget(ren,tex);
     }
 
     auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void
@@ -108,6 +115,8 @@ public:
 private:
     SDL_Window* win{nullptr};
     SDL_Renderer* ren{nullptr};
+
+    SDL_Texture* tex{nullptr};
 
 
 };

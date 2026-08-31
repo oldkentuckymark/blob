@@ -340,7 +340,8 @@ public:
         viewport_height_ = h;
         viewport_width_fx_ = static_cast<fixed32>(w);
         viewport_height_fx_ = static_cast<fixed32>(h);
-        aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
+        //aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
+        aspect_ratio_ = 1.0_fx | 1.5_fx;
     }
 
      [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
