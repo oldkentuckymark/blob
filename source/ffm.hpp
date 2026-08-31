@@ -21,32 +21,32 @@ public:
 
     int16_t data{0};
 
-    constexpr fixed16() = default;
+     constexpr fixed16() = default;
 
-    constexpr explicit fixed16(int8_t const &that)
+     constexpr explicit fixed16(int8_t const &that)
         : data(that << FIX_SHIFT)
     {}
 
-    constexpr explicit fixed16(double const &that)
+     constexpr explicit fixed16(double const &that)
         : data(static_cast<int16_t>(that * FIX_SCALEF))
     {}
 
-    constexpr auto operator=(int8_t const that) -> fixed16 &
+     constexpr auto operator=(int8_t const that) -> fixed16 &
     {
         data = that << FIX_SHIFT;
         return (*this);
     }
 
-    constexpr auto operator=(double const that) -> fixed16 &
+     constexpr auto operator=(double const that) -> fixed16 &
     {
         data = static_cast<int16_t>(that * FIX_SCALEF);
         return (*this);
     }
 
 
-    constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
+     constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
 
-    consteval explicit operator double() const { return data / FIX_SCALEF; }
+     consteval explicit operator double() const { return data / FIX_SCALEF; }
 
 
 
@@ -62,120 +62,120 @@ public:
 
     int32_t data{0};
 
-    constexpr fixed32() = default;
+     constexpr fixed32() = default;
 
-    constexpr explicit fixed32(int8_t const &that)
+     constexpr explicit fixed32(int8_t const &that)
         : data(that << FIX_SHIFT)
     {}
 
-    constexpr explicit fixed32(int16_t const &that)
+     constexpr explicit fixed32(int16_t const &that)
         : data(that << FIX_SHIFT)
     {}
 
-    constexpr explicit fixed32(int32_t const &that)
+     constexpr explicit fixed32(int32_t const &that)
         : data(that << FIX_SHIFT)
     {}
 
-    constexpr explicit fixed32(double const &that)
+     constexpr explicit fixed32(double const &that)
         : data(static_cast<int32_t>(that * FIX_SCALEF))
     {}
 
-    constexpr auto operator=(int8_t const that) -> fixed32 &
+     constexpr auto operator=(int8_t const that) -> fixed32 &
     {
         data = that << FIX_SHIFT;
         return (*this);
     }
 
-    constexpr auto operator=(int16_t const that) -> fixed32 &
+     constexpr auto operator=(int16_t const that) -> fixed32 &
     {
         data = that << FIX_SHIFT;
         return (*this);
     }
 
-    constexpr auto operator=(int32_t const that) -> fixed32 &
+     constexpr auto operator=(int32_t const that) -> fixed32 &
     {
         data = that << FIX_SHIFT;
         return (*this);
     }
 
 
-    constexpr auto operator=(double const that) -> fixed32 &
+     constexpr auto operator=(double const that) -> fixed32 &
     {
         data = static_cast<int32_t>(that * FIX_SCALEF);
         return (*this);
     }
 
-    constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
+     constexpr explicit operator int8_t() const { return data >> FIX_SHIFT; }
 
-    constexpr operator int16_t() const { return data >> FIX_SHIFT; }
+     constexpr operator int16_t() const { return data >> FIX_SHIFT; }
 
-    constexpr explicit operator int32_t() const { return data >> FIX_SHIFT; }
+     constexpr explicit operator int32_t() const { return data >> FIX_SHIFT; }
 
-    consteval explicit operator double() const { return data / FIX_SCALEF; }
+     consteval explicit operator double() const { return data / FIX_SCALEF; }
 
-    constexpr explicit operator fixed16() const
+     constexpr explicit operator fixed16() const
     {
         fixed16 r;
         r.data = static_cast<int16_t>((data + 128) >> 8);
         return r;
     }
 
-    constexpr auto operator+(fixed32 const that) const -> fixed32
+     constexpr auto operator+(fixed32 const that) const -> fixed32
     {
         fixed32 r;
         r.data = data + that.data;
         return r;
     }
 
-    constexpr auto operator-(fixed32 const that) const -> fixed32
+     constexpr auto operator-(fixed32 const that) const -> fixed32
     {
         fixed32 r;
         r.data = data - that.data;
         return r;
     }
 
-    constexpr auto operator*(fixed32 const that) const -> fixed32
+     constexpr auto operator*(fixed32 const that) const -> fixed32
     {
         fixed32 r;
         r.data = (int64_t(data) * that.data) >> FIX_SHIFT;
         return r;
     }
 
-    constexpr auto operator|(fixed32 const that) const -> fixed32
+     constexpr auto operator|(fixed32 const that) const -> fixed32
     {
         fixed32 r;
         r.data = (int64_t(data) * FIX_SCALE) / (that.data);
         return r;
     }
 
-    constexpr auto operator-() const -> fixed32
+     constexpr auto operator-() const -> fixed32
     {
         fixed32 r;
         r.data = this->data * -1;
         return r;
     }
 
-    constexpr auto operator==(fixed32 const &that) const -> bool
+     constexpr auto operator==(fixed32 const &that) const -> bool
     {
         return this->data == that.data;
     }
 
-    constexpr auto operator<(fixed32 const &that) const -> bool
+     constexpr auto operator<(fixed32 const &that) const -> bool
     {
         return this->data < that.data;
     }
 
-    constexpr auto operator>(fixed32 const &that) const -> bool
+     constexpr auto operator>(fixed32 const &that) const -> bool
     {
         return this->data > that.data;
     }
 
-    constexpr auto operator<=(fixed32 const &that) const -> bool
+     constexpr auto operator<=(fixed32 const &that) const -> bool
     {
         return this->data <= that.data;
     }
 
-    constexpr auto operator>=(fixed32 const &that) const -> bool
+     constexpr auto operator>=(fixed32 const &that) const -> bool
     {
         return this->data >= that.data;
     }
@@ -197,7 +197,7 @@ private:
         return r;
     }
 
-    [[nodiscard]] constexpr static auto invZ(fixed32 const z) -> fixed32
+     [[nodiscard]] constexpr static auto invZ(fixed32 const z) -> fixed32
     {
         constexpr static std::array<fixed32, INVZ_N> invzlut{makeinvzTable()};
 
@@ -222,28 +222,28 @@ private:
 
 public:
 
-    constexpr auto operator/(fixed32 const &that) const -> fixed32
+     constexpr auto operator/(fixed32 const &that) const -> fixed32
     {
         fixed32 r;
         r = (*this) * invZ(that);
         return r;
     }
 
-    constexpr auto doubled() const -> fixed32
+     constexpr auto doubled() const -> fixed32
     {
         fixed32 r;
         r.data = this->data << 1;
         return r;
     }
 
-    constexpr auto halved() const -> fixed32
+     constexpr auto halved() const -> fixed32
     {
         fixed32 r;
         r.data = this->data >> 1;
         return r;
     }
 
-    constexpr static auto tiny() -> fixed32
+     constexpr static auto tiny() -> fixed32
     {
         fixed32 r;
         r.data = 1;
@@ -278,7 +278,7 @@ constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
 
 
 
-[[nodiscard]] constexpr auto factorial(auto const n) -> decltype(n)
+ [[nodiscard]] constexpr auto factorial(auto const n) -> decltype(n)
 {
     decltype(n) r = 1;
     for (decltype(n) i = n; i > 1; --i)
@@ -288,7 +288,7 @@ constexpr fixed32 RAD_TO_GAMDEG = fixed32(GAMDEG_IN_CIRCLE / TAUF);
     return r;
 }
 
-[[nodiscard]] constexpr auto pow(auto const b, auto const e) -> decltype(b)
+ [[nodiscard]] constexpr auto pow(auto const b, auto const e) -> decltype(b)
 {
     decltype(b) r = 1;
     for (decltype(b) i = 0; i < e; ++i) {
@@ -399,12 +399,12 @@ consteval auto makeInvsqrtTable() -> LUT
 } // namespace
 
 
-[[nodiscard]] constexpr auto clampGamdeg(int16_t gamdeg) -> int16_t
+ [[nodiscard]] constexpr auto clampGamdeg(int16_t gamdeg) -> int16_t
 {
     return (gamdeg % GAMDEG_IN_CIRCLE + GAMDEG_IN_CIRCLE) % GAMDEG_IN_CIRCLE;
 }
 
-[[nodiscard]] constexpr auto sin(fixed32 const a) -> fixed32
+ [[nodiscard]] constexpr auto sin(fixed32 const a) -> fixed32
 {
     static constexpr auto SINTABLE = makeSinTable();
 
@@ -414,7 +414,7 @@ consteval auto makeInvsqrtTable() -> LUT
     return fixed32{SINTABLE[gdi]};
 }
 
-[[nodiscard]] constexpr auto cos(fixed32 const a) -> fixed32
+ [[nodiscard]] constexpr auto cos(fixed32 const a) -> fixed32
 {
     static constexpr LUT COSTABLE = makeCosTable();
 
@@ -424,27 +424,27 @@ consteval auto makeInvsqrtTable() -> LUT
     return fixed32{COSTABLE[gdi]};
 }
 
-[[nodiscard]] constexpr auto tan(fixed32 const n) -> fixed32
+ [[nodiscard]] constexpr auto tan(fixed32 const n) -> fixed32
 {
     return sin(n) / cos(n);
 }
 
-[[nodiscard]] constexpr auto cot(fixed32 const n) -> fixed32
+ [[nodiscard]] constexpr auto cot(fixed32 const n) -> fixed32
 {
     return cos(n) / sin(n);
 }
 
-[[nodiscard]] constexpr auto abs(auto const n) -> decltype(n)
+ [[nodiscard]] constexpr auto abs(auto const n) -> decltype(n)
 {
     return (n > 0) ? n : -n;
 }
 
-[[nodiscard]] constexpr auto abs(fixed32 const n) -> fixed32
+ [[nodiscard]] constexpr auto abs(fixed32 const n) -> fixed32
 {
     return (n > 0.0_fx) ? n : -n;
 }
 
-constexpr auto sqrt(fixed32 const x) -> fixed32
+ constexpr auto sqrt(fixed32 const x) -> fixed32
 {
     fixed32 r;
     if (x.data <= 0) {return r;}
@@ -488,36 +488,36 @@ class vec2
 public:
     fixed32 x, y;
 
-    constexpr auto operator+(vec2 const &that) const -> vec2 { return {x + that.x, y + that.y}; }
+     constexpr auto operator+(vec2 const &that) const -> vec2 { return {x + that.x, y + that.y}; }
 
-    constexpr auto operator+(fixed32 const & that) const -> vec2
+     constexpr auto operator+(fixed32 const & that) const -> vec2
     {
         return {this->x + that, this->y + that};
     }
 
-    constexpr auto operator-(vec2 const &that) const -> vec2 { return {x - that.x, y - that.y}; }
+     constexpr auto operator-(vec2 const &that) const -> vec2 { return {x - that.x, y - that.y}; }
 
-    constexpr auto operator-(fixed32 const & that) const -> vec2
+     constexpr auto operator-(fixed32 const & that) const -> vec2
     {
         return {this->x - that, this->y - that};
     }
 
-    constexpr auto operator*(fixed32 const &that) const -> vec2 { return {x * that, y * that}; }
+     constexpr auto operator*(fixed32 const &that) const -> vec2 { return {x * that, y * that}; }
 
-    constexpr auto operator/(fixed32 const &that) const -> vec2 { return {x / that, y / that}; }
+     constexpr auto operator/(fixed32 const &that) const -> vec2 { return {x / that, y / that}; }
 
-    constexpr static auto dot(vec2 const & a, vec2 const & b) -> fixed32
+     constexpr static auto dot(vec2 const & a, vec2 const & b) -> fixed32
     {
         return {(a.x * b.x) + (a.y * b.y)};
     }
 
-    [[nodiscard]] constexpr static auto cross(vec2 const& a, vec2 const& b) -> fixed32
+     [[nodiscard]] constexpr static auto cross(vec2 const& a, vec2 const& b) -> fixed32
     {
         return (a.x * b.y) - (a.y * b.x);
     }
 
 
-    [[nodiscard]] constexpr auto length() const -> fixed32
+     [[nodiscard]] constexpr auto length() const -> fixed32
     {
         const auto x2 = x * x;
         const auto y2 = y * y;
@@ -531,37 +531,37 @@ class vec3
 public:
     fixed32 x,y,z;
 
-    constexpr auto operator+(vec3 const &that) const -> vec3
+     constexpr auto operator+(vec3 const &that) const -> vec3
     {
         return {this->x + that.x, this->y + that.y, this->z + that.z};
     }
 
-    constexpr auto operator+(fixed32 const & that) const -> vec3
+     constexpr auto operator+(fixed32 const & that) const -> vec3
     {
         return {this->x + that, this->y + that, this->z + that};
     }
 
-    constexpr auto operator-(vec3 const &that) const -> vec3
+     constexpr auto operator-(vec3 const &that) const -> vec3
     {
         return {this->x - that.x, this->y - that.y, this->z - that.z};
     }
 
-    constexpr auto operator-(fixed32 const &that) const -> vec3
+     constexpr auto operator-(fixed32 const &that) const -> vec3
     {
         return {this->x - that, this->y - that, this->z - that};
     }
 
-    constexpr auto operator*(fixed32 const &that) const -> vec3
+     constexpr auto operator*(fixed32 const &that) const -> vec3
     {
         return {this->x * that, this->y * that, this->z * that};
     }
 
-    constexpr auto operator/(fixed32 const &that) const -> vec3
+     constexpr auto operator/(fixed32 const &that) const -> vec3
     {
         return {this->x / that, this->y / that, this->z / that};
     }
 
-    constexpr auto operator*(vec3 const &that) const -> vec3
+     constexpr auto operator*(vec3 const &that) const -> vec3
     {
         return {(this->x * that.x), (this->y * that.y), (this->z * that.z)};
     }
@@ -571,12 +571,12 @@ public:
         return a.x*b.x + a.y*b.y + a.z*b.z;
     }
 
-    constexpr static auto cross(vec3 const & a, vec3 const & b) -> vec3
+     constexpr static auto cross(vec3 const & a, vec3 const & b) -> vec3
     {
         return {a.y * b.z - a.z * b.y,a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x};
     }
 
-    [[nodiscard]] constexpr auto length() const -> fixed32
+     [[nodiscard]] constexpr auto length() const -> fixed32
     {
         const auto x2 = x * x;
         const auto y2 = y * y;
@@ -585,7 +585,7 @@ public:
         return sqrt(sum);
     }
 
-    [[nodiscard]] constexpr auto normalize() const -> vec3
+     [[nodiscard]] constexpr auto normalize() const -> vec3
     {
         auto const l = this->length();
         return {this->x / l, this->y / l, this->z / l};
@@ -599,47 +599,47 @@ class vec4
 public:
     fixed32 x,y,z,w = 1.0_fx;
 
-    constexpr auto operator+(vec4 const &that) const -> vec4
+     constexpr auto operator+(vec4 const &that) const -> vec4
     {
         return {this->x + that.x, this->y + that.y, z + that.z, w + that.w};
     }
 
-    constexpr auto operator+(fixed32 const & that) const -> vec4
+     constexpr auto operator+(fixed32 const & that) const -> vec4
     {
         return {this->x + that, this->y + that, this->z + that, this->w + that};
     }
 
-    constexpr auto operator-(vec4 const &that) const -> vec4
+     constexpr auto operator-(vec4 const &that) const -> vec4
     {
         return {this->x - that.x, this->y - that.y, this->z - that.z, this->w - that.w};
     }
 
-    constexpr auto operator-(fixed32 const & that) const -> vec4
+     constexpr auto operator-(fixed32 const & that) const -> vec4
     {
         return {this->x - that, this->y - that, this->z - that, this->w - that};
     }
 
-    constexpr auto operator*(fixed32 const &that) const -> vec4
+     constexpr auto operator*(fixed32 const &that) const -> vec4
     {
         return {this->x * that, this->y * that, this->z * that, this->w * that};
     }
 
-    constexpr auto operator/(fixed32 const &that) const -> vec4
+     constexpr auto operator/(fixed32 const &that) const -> vec4
     {
         return {this->x / that, this->y / that, this->z / that, this->w / that};
     }
 
-    constexpr auto operator*(vec4 const &that) const -> vec4
+     constexpr auto operator*(vec4 const &that) const -> vec4
     {
         return {(this->x * that.x), (this->y * that.y), (this->z * that.z), (this->w * that.w)};
     }
 
-    [[nodiscard]] constexpr static auto dot(vec4 const & a, vec4 const & b) -> fixed32
+     [[nodiscard]] constexpr static auto dot(vec4 const & a, vec4 const & b) -> fixed32
     {
         return {(a.x * b.x) + (a.y * b.y) + (a.z * b.z) + (a.w * b.w)};
     }
 
-    [[nodiscard]] constexpr auto length() const -> fixed32
+     [[nodiscard]] constexpr auto length() const -> fixed32
     {
         const auto x2 = x * x;
         const auto y2 = y * y;
@@ -655,7 +655,7 @@ class mat4
 public:
     fixed32 m[4][4];
 
-    constexpr mat4()
+     constexpr mat4()
     {
         m[0][0] = 1.0_fx;
         m[0][1] = 0.0_fx;
@@ -678,7 +678,7 @@ public:
         m[3][3] = 1.0_fx;
     }
 
-    constexpr auto operator+(mat4 const &that) -> mat4
+     constexpr auto operator+(mat4 const &that) -> mat4
     {
         mat4 n;
 
@@ -691,7 +691,7 @@ public:
         return n;
     }
 
-    constexpr auto operator-(mat4 const &that) -> mat4
+     constexpr auto operator-(mat4 const &that) -> mat4
     {
         mat4 n;
 
@@ -704,7 +704,7 @@ public:
         return n;
     }
 
-    constexpr auto operator*(fixed32 const &that) -> mat4
+     constexpr auto operator*(fixed32 const &that) -> mat4
     {
         mat4 n;
 
@@ -717,7 +717,7 @@ public:
         return n;
     }
 
-    constexpr auto operator/(fixed32 const &that) -> mat4
+     constexpr auto operator/(fixed32 const &that) -> mat4
     {
         mat4 n;
 
@@ -730,7 +730,7 @@ public:
         return n;
     }
 
-    constexpr auto operator*(mat4 const &that) -> mat4
+     constexpr auto operator*(mat4 const &that) -> mat4
     {
         mat4 n;
 
@@ -744,7 +744,7 @@ public:
         return n;
     }
 
-    constexpr auto operator*(vec4 const &that) -> vec4
+     constexpr auto operator*(vec4 const &that) -> vec4
     {
         vec4 n;
 
@@ -763,7 +763,7 @@ public:
         return n;
     }
 
-    static constexpr auto perspective(fixed32 const fovy,
+     static constexpr auto perspective(fixed32 const fovy,
                                       fixed32 const aspect,
                                       fixed32 const zNear,
                                       fixed32 const zFar)
@@ -782,7 +782,7 @@ public:
         return n;
     }
 
-    static constexpr auto perspective90DegSquare(fixed32 const zNear, fixed32 const zFar)
+     static constexpr auto perspective90DegSquare(fixed32 const zNear, fixed32 const zFar)
     {
         mat4 n;
 
@@ -796,7 +796,7 @@ public:
         return n;
     }
 
-    static constexpr auto translation(vec3 const &v) -> mat4
+     static constexpr auto translation(vec3 const &v) -> mat4
     {
         mat4 n;
 
@@ -808,7 +808,7 @@ public:
         return n;
     }
 
-    static constexpr auto translation(vec4 const &v) -> mat4
+     static constexpr auto translation(vec4 const &v) -> mat4
     {
         mat4 n;
 
@@ -820,7 +820,7 @@ public:
         return n;
     }
 
-    static constexpr auto rotationX(fixed32 const &radians) -> mat4
+     static constexpr auto rotationX(fixed32 const &radians) -> mat4
     {
         mat4 r;
 
@@ -832,7 +832,7 @@ public:
         return r;
     }
 
-    static constexpr auto rotationY(fixed32 const &radians) -> mat4
+     static constexpr auto rotationY(fixed32 const &radians) -> mat4
     {
         mat4 r;
 
@@ -844,7 +844,7 @@ public:
         return r;
     }
 
-    static constexpr auto rotationZ(fixed32 const &radians) -> mat4
+     static constexpr auto rotationZ(fixed32 const &radians) -> mat4
     {
         mat4 r;
 
@@ -858,18 +858,18 @@ public:
 };
 
 
-[[nodiscard]] constexpr auto mix(auto x, auto y, auto a) -> auto
+ [[nodiscard]] constexpr auto mix(auto x, auto y, auto a) -> auto
 {
     return x * (1.0_fx - a) + y * a;
 }
 
-[[nodiscard]] constexpr auto min(auto x, auto y) -> auto
+ [[nodiscard]] constexpr auto min(auto x, auto y) -> auto
 {
     if(x < y) {return x;}
     return y;
 }
 
-[[nodiscard]] constexpr auto max(auto x, auto y) -> auto
+ [[nodiscard]] constexpr auto max(auto x, auto y) -> auto
 {
     if(x > y) {return x;}
     return y;

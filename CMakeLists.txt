@@ -13,6 +13,7 @@ set(LICENCES
 
 set(BLOB_HEADERS
 
+
     source/color.hpp
     source/util.hpp
     source/ffm.hpp
@@ -30,6 +31,7 @@ set(BLOB_HEADERS
 
 
 set(BLOB_SOURCES
+
 )
 
 set(BLOB_SDL_SOURCES
@@ -45,6 +47,8 @@ set(BLOB_GBA_SOURCES
 add_executable(blob-sdl
     ${BLOB_SDL_SOURCES}
     ${BLOB_HEADERS}
+
+
 
 
 )

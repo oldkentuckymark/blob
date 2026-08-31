@@ -63,7 +63,7 @@ public:
 };
 
 
-class Context final : public ffr::Context<VertexFunction>
+class Context final : public ffr::BaseContext<Context,VertexFunction>
 {
 public:
     Context()
@@ -73,34 +73,34 @@ public:
         SDL_SetRenderScale(ren,4.0f,4.0f);
     }
 
-    ~Context() override
+    ~Context()
     {
         SDL_DestroyRenderer(ren);
         SDL_DestroyWindow(win);
     }
 
-    auto clear() -> void override
+    auto clear() -> void
     {
         SDL_SetRenderDrawColor(ren,0,0,0,255);
         SDL_RenderClear(ren);
     }
 
-    auto present() -> void override
+    auto present() -> void
     {
 
         SDL_RenderPresent(ren);
     }
 
-    auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void override
+    auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void
     {
         auto cc = util::Convert555to888(color);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
         SDL_RenderLine(ren, x0,y0,x1,y0);
     }
 
-    auto plot(int16_t x, int16_t y, uint16_t c) -> void override
+    auto plot(int16_t x, int16_t y, uint16_t color) -> void
     {
-        auto cc = util::Convert555to888(c);
+        auto cc = util::Convert555to888(color);
         SDL_SetRenderDrawColor(ren,cc[0],cc[1],cc[2],255);
         SDL_RenderPoint(ren,x,y);
     }

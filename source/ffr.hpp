@@ -11,8 +11,79 @@
 
 namespace ffr
 {
-
 using namespace ffm;
+
+template<class Derived, class VERTEX_FUNCTION>
+class BaseContext;
+
+template<typename F>
+concept IsVertexFunction = requires(F f, vec3& v) {
+    { f(v) } -> std::same_as<void>;
+};
+
+template<typename T>
+concept HasPlot = requires(T t, int16_t x, int16_t y, uint16_t color) {
+    { t.plot(x, y, color) } -> std::same_as<void>;
+};
+
+template<typename T>
+concept HasLine = requires {
+    requires std::is_same_v<
+        decltype(&T::line),
+        auto (T::*)(int16_t, int16_t, int16_t, int16_t, uint16_t) -> void
+        >;
+};
+
+template<typename T>
+concept HasLineHorizontal = requires {
+    requires std::is_same_v<
+        decltype(&T::lineHorizontal),
+        auto (T::*)(int16_t, int16_t, int16_t, uint16_t) -> void
+        >;
+};
+
+template<typename T>
+concept HasLineVertical = requires {
+    requires std::is_same_v<
+        decltype(&T::lineVertical),
+        auto (T::*)(int16_t, int16_t, int16_t, uint16_t) -> void
+        >;
+};
+
+template<typename T>
+concept HasTriangle = requires {
+    requires std::is_same_v<
+        decltype(&T::triangle),
+        auto (T::*)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint16_t) -> void
+        >;
+};
+
+template<typename T>
+concept HasQuad = requires {
+    requires std::is_same_v<
+        decltype(&T::quad),
+        auto (T::*)(int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, int16_t, uint16_t) -> void
+        >;
+};
+
+template<typename T>
+concept HasClear = requires {
+    requires std::is_same_v<
+        decltype(&T::clear),
+        auto (T::*)() -> void
+        >;
+};
+
+template<typename T>
+concept HasPresent = requires {
+    requires std::is_same_v<
+        decltype(&T::present),
+        auto (T::*)() -> void
+        >;
+};
+
+
+
 
 
 enum class DrawType : uint32_t
@@ -33,25 +104,45 @@ enum class FaceCullMode : int32_t
     All = 2
 };
 
-
-template<class VERTEX_FUNCTION>
-class Context
+template<class Derived, class VERTEX_FUNCTION>
+class BaseContext
 {
+
     static constexpr size_t MAX_VERTS{256};
 
+private:
+    constexpr Derived& derived() { return static_cast<Derived&>(*this); }
+
 public:
-    Context() = default;
-    virtual ~Context() = default;
-
-    Context(Context&) = delete;
-    auto operator = (Context&) = delete;
-    Context(Context&&) = delete;
-    auto operator = (Context&&) = delete;
-
-    virtual auto plot(int16_t x, int16_t y, Color color) -> void {}
-
-    virtual auto line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) -> void
+    BaseContext()
     {
+        static_assert(IsVertexFunction<VERTEX_FUNCTION>,
+                      "CRITICAL: The provided VERTEX_FUNCTION template parameter must override operator()(vec3&).");
+        static_assert(HasPlot<Derived>,
+                      "CRITICAL: Your derived platform renderer class must implement void plot(int16_t x, int16_t y, uint16_t color).");
+
+    }
+    ~BaseContext() = default;
+
+    BaseContext(BaseContext&) = delete;
+    auto operator = (BaseContext&) = delete;
+    BaseContext(BaseContext&&) = delete;
+    auto operator = (BaseContext&&) = delete;
+
+    auto plot(int16_t x, int16_t y, Color color) -> void
+    {
+        derived().plot(x, y, color);
+    }
+
+    auto line(int16_t x0, int16_t y0, int16_t x1, int16_t y1, Color color) -> void
+    {
+        if constexpr (HasLine<Derived>) {
+            derived().line(x0, y0, x1, y1, color);
+        }
+        else
+        {
+            // Default Bresenham line algorithm parsing down to plot()
+
         bool const steep = ffm::abs(y1 - y0) > ffm::abs(x1 - x0);
 
         if (steep)
@@ -99,20 +190,39 @@ public:
                 error += dx;
             }
         }
+        }
     }
 
-    virtual auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void
+    auto lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) -> void
     {
-        line(x0, y0, x1, y0, color);
+        if constexpr (HasLineHorizontal<Derived>)
+        {
+            derived().lineHorizontal(x0, y0, x1, color);
+        }
+        else
+        {
+            line(x0, y0, x1, y0, color);
+        }
     }
 
-    virtual auto lineVertical(int16_t x0, int16_t y0, int16_t y1, uint16_t color) -> void
+     auto lineVertical(int16_t x0, int16_t y0, int16_t y1, uint16_t color) -> void
     {
+         if constexpr (HasLineVertical<Derived>) {
+             derived().lineVertical(x0, y0, y1, color);
+         } else {
+             // Default vertical plotting loop
+
         line(x0, y0, x0, y1, color);
+         }
     }
 
-    auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color) -> void
+     auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, Color color) -> void
     {
+         if constexpr (HasTriangle<Derived>) {
+             derived().triangle(x0, y0, x1, y1, x2, y2, color);
+         } else {
+             // Default software wireframe/raster loop fallback
+
         // Sort so y0 <= y1 <= y2 (top -> bottom), keeping x/y pairs together.
         if (y0 > y1) { util::swap(x0, x1); util::swap(y0, y1); }
         if (y1 > y2) { util::swap(x1, x2); util::swap(y1, y2); }
@@ -181,186 +291,35 @@ public:
         {
             lineHorizontal(xx0, y2, xx1, color); // apex / final row
         }
+         }
     }
 
-    /*
-    virtual auto triangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, uint16_t color) -> void
+    auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
     {
-        int32_t v_top_x = x0, v_top_y = y0;
-        int32_t v_mid_x = x1, v_mid_y = y1;
-        int32_t v_bot_x = x2, v_bot_y = y2;
-        int32_t temp_x, temp_y;
-
-
-        // --- 1. Manual Sort ---
-        // Sort points so v_top_y <= v_mid_y <= v_bot_y
-        if (v_top_y > v_mid_y)
+        if constexpr (HasQuad<Derived>)
         {
-            temp_x = v_top_x;
-            v_top_x = v_mid_x;
-            v_mid_x = temp_x;
-            temp_y = v_top_y;
-            v_top_y = v_mid_y;
-            v_mid_y = temp_y;
+            derived().quad(x0, y0, x1, y1, x2, y2, x3, y3, color);
         }
-        if (v_mid_y > v_bot_y)
+        else
         {
-            temp_x = v_mid_x;
-            v_mid_x = v_bot_x;
-            v_bot_x = temp_x;
-            temp_y = v_mid_y;
-            v_mid_y = v_bot_y;
-            v_bot_y = temp_y;
-        }
-        if (v_top_y > v_mid_y)
-        {
-            temp_x = v_top_x;
-            v_top_x = v_mid_x;
-            v_mid_x = temp_x;
-            temp_y = v_top_y;
-            v_top_y = v_mid_y;
-            v_mid_y = temp_y;
-        }
-
-        // --- 2. Trivial Case: Horizontal line ---
-        if (v_top_y == v_bot_y)
-        {
-            int32_t min_x = v_top_x;
-            int32_t max_x = v_top_x;
-            if (v_mid_x < min_x)
-                min_x = v_mid_x;
-            if (v_mid_x > max_x)
-                max_x = v_mid_x;
-            if (v_bot_x < min_x)
-                min_x = v_bot_x;
-            if (v_bot_x > max_x)
-                max_x = v_bot_x;
-
-            auto draw = clip_horizontal_line_screen(min_x, v_top_y, max_x);
-            if(draw == 0) {return;}
-            if(draw == 1)
-            {
-                lineHorizontal(min_x, v_top_y, max_x, color);
-            }
-            return;
-
-        }
-
-        // --- 3. Setup Bresenham Edge Steppers ---
-        // Stepper A traces the long edge (top -> bottom)
-        int32_t dx_a = v_bot_x - v_top_x;
-        int32_t dy_a = v_bot_y - v_top_y;
-        int32_t x_step_a = 1;
-        if (dx_a < 0)
-        {
-            dx_a = -dx_a;
-            x_step_a = -1;
-        }
-        int32_t error_a = dy_a >> 1;
-        int32_t x_a = v_top_x;
-
-        // Stepper B will trace the upper int32_t edge (top -> middle) first
-        int32_t dx_b = v_mid_x - v_top_x;
-        int32_t dy_b = v_mid_y - v_top_y;
-        int32_t x_step_b = 1;
-        if (dx_b < 0)
-        {
-            dx_b = -dx_b;
-            x_step_b = -1;
-        }
-        int32_t error_b = dy_b >> 1;
-        int32_t x_b = v_top_x;
-
-        // --- 4. Top half of triangle ---
-        // This part is skipped if the triangle is flat-top (top_y == mid_y)
-        for (int32_t y = v_top_y; y < v_mid_y; y++)
-        {
-
-
-            auto draw = clip_horizontal_line_screen(x_a,y,x_b);
-            if(draw == 0) {return;}
-            if(draw == 1)
-            {
-                lineHorizontal(x_a, y, x_b, color);
-            }
-
-            // Advance stepper A along the long edge
-            error_a -= dx_a;
-            while (error_a < 0)
-            {
-                x_a += x_step_a;
-                error_a += dy_a;
-            }
-
-            // Advance stepper B along the upper int32_t edge
-            if (dy_b > 0)
-            {
-                // Avoid division by zero on a horizontal top edge
-                error_b -= dx_b;
-                while (error_b < 0)
-                {
-                    x_b += x_step_b;
-                    error_b += dy_b;
-                }
-            }
-        }
-
-        // --- 5. Bottom half of triangle ---
-        // Re-setup stepper B for the lower int32_t edge (middle -> bottom)
-        dx_b = v_bot_x - v_mid_x;
-        dy_b = v_bot_y - v_mid_y;
-        x_step_b = 1;
-        if (dx_b < 0)
-        {
-            dx_b = -dx_b;
-            x_step_b = -1;
-        }
-        error_b = dy_b >> 1;
-        x_b = v_mid_x;
-
-
-
-        for (int32_t y = v_mid_y; y <= v_bot_y; y++)
-        {
-            auto draw = clip_horizontal_line_screen(x_a,y,x_b);
-            if(draw == 0) { return; }
-            if(draw == 1)
-            {
-                lineHorizontal(x_a, y, x_b, color);
-            }
-
-            // Advance stepper A along the long edge
-            error_a -= dx_a;
-            while (error_a < 0)
-            {
-                x_a += x_step_a;
-                error_a += dy_a;
-            }
-
-            // Advance stepper B along the lower int32_t edge
-            if (dy_b > 0)
-            {
-                // Avoid division by zero on a horizontal bottom edge
-                error_b -= dx_b;
-                while (error_b < 0)
-                {
-                    x_b += x_step_b;
-                    error_b += dy_b;
-                }
-            }
+            triangle(x0,y0,x1,y1,x2,y2,color);
+            triangle(x2,y2,x3,y3,x0,y0,color);
         }
     }
-    */
 
-    virtual auto quad(int16_t x0, int16_t y0, int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, uint16_t color) -> void
+    auto clear() -> void
     {
-        triangle(x0,y0,x1,y1,x2,y2,color);
-        triangle(x2,y2,x3,y3,x0,y0,color);
+        if constexpr (HasClear<Derived>) {
+            derived().clear();
+        }
     }
 
-    virtual auto clear() -> void {}
-
-    virtual auto present() -> void {}
+    auto present() -> void
+    {
+        if constexpr (HasPresent<Derived>) {
+            derived().present();
+        }
+    }
 
     auto setVertexPointer(uint32_t const size, uint32_t const stride, void const* vp) -> void
     {
@@ -384,7 +343,7 @@ public:
         aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
     }
 
-    [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
+     [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
     {
         return vf_;
     }
@@ -402,7 +361,7 @@ public:
 
 
 
-    auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
+     auto drawArray(DrawType const dt, uint32_t const first, uint32_t const count) -> void
     {
         current_draw_type_ = dt;
         working_vertex_buffer_.clear();
@@ -545,13 +504,13 @@ public:
 
 protected:
 
-    auto is_point_inside_near(vec3 const & p) -> bool
+     auto is_point_inside_near(vec3 const & p) -> bool
     {
         return p.z > near_z_;
     }
 
 
-    auto clip_line_near(vec3& v0, vec3& v1) -> bool
+     auto clip_line_near(vec3& v0, vec3& v1) -> bool
     {
         //trivial pass
         if(is_point_inside_near(v0) && is_point_inside_near(v1))
@@ -569,7 +528,7 @@ protected:
         return false;
     }
 
-    auto clip_triangle_near(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> std::inplace_vector<vec3, 8>
+     auto clip_triangle_near(vec3 const & v0, vec3 const & v1, vec3 const & v2) -> std::inplace_vector<vec3, 8>
     {
         //trivial pass
         if(is_point_inside_near(v0) && is_point_inside_near(v1) && is_point_inside_near(v2))
@@ -588,7 +547,7 @@ protected:
 
     }
 
-    auto clip_quad_near(vec3 const & v0, vec3 const & v1, vec3 const & v2, vec3 const & v3) -> std::inplace_vector<vec3, 8>
+     auto clip_quad_near(vec3 const & v0, vec3 const & v1, vec3 const & v2, vec3 const & v3) -> std::inplace_vector<vec3, 8>
     {
         //trivial pass
         if(is_point_inside_near(v0) && is_point_inside_near(v1) && is_point_inside_near(v2) && (is_point_inside_near(v3)))
@@ -606,7 +565,7 @@ protected:
         return {};
     }
 
-    auto clip_horizontal_line_screen(int16_t& x0, int16_t& y0, int16_t& x1) -> int32_t
+     auto clip_horizontal_line_screen(int16_t& x0, int16_t& y0, int16_t& x1) -> int32_t
     {
         if (y0 < 0)                { return -1; }   // above screen: skip this row only
         if (y0 >= viewport_height_) { return 0; }    // below screen: nothing further can be visible
@@ -619,7 +578,7 @@ protected:
     }
 
     template <int N> requires (N == 3 || N == 4)
-    [[nodiscard]] auto clip_polygon_near_z(std::span<vec3 const, N> const verts) -> std::inplace_vector<vec3, ((5 - 2 + (N - 2) - 1) / (N - 2)) * N>
+     [[nodiscard]] auto clip_polygon_near_z(std::span<vec3 const, N> const verts) -> std::inplace_vector<vec3, ((5 - 2 + (N - 2) - 1) / (N - 2)) * N>
     {
 
         std::inplace_vector<vec3, 5> clipped;
@@ -672,7 +631,7 @@ protected:
         return output;
     }
 
-    auto project_to_ndc(vec3& p) -> void
+     auto project_to_ndc(vec3& p) -> void
     {
         p.x = p.x * aspect_ratio_;
         //p.x = p.x / p.z;
@@ -681,7 +640,7 @@ protected:
         p.y = p.y / p.z;
     }
 
-    [[nodiscard]] auto is_cull_passing(vec3 const& v0, vec3 const& v1, vec3 const& v2) -> bool
+     [[nodiscard]] auto is_cull_passing(vec3 const& v0, vec3 const& v1, vec3 const& v2) -> bool
     {
         if (cull_ == FaceCullMode::None) { return true; }
         else if (cull_ == FaceCullMode::All) { return false; }
@@ -699,7 +658,7 @@ protected:
         return false;
     }
 
-    auto to_screen_space(vec3& p) -> void
+     auto to_screen_space(vec3& p) -> void
     {
         // Map from [-1, +1] → [0, 1]
         fixed32 sx = (p.x + 1.0_fx).halved();
@@ -710,7 +669,7 @@ protected:
         p.y = sy * viewport_height_fx_ - 1.0_fx;
     }
 
-    VERTEX_FUNCTION vf_;
+    [[no_unique_address]] VERTEX_FUNCTION vf_;
 
     void const* vertex_pointer_{nullptr};
     uint32_t vertex_size_{0};

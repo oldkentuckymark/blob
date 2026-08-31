@@ -27,12 +27,11 @@
 #define KEY_MASK     0xFC00
 
 
-
 class FFT
 {
 public:
 
-    auto operator()(ffm::vec3& in) -> void
+     auto operator()(ffm::vec3& in) -> void
     {
 
         using namespace ffm;
@@ -61,7 +60,7 @@ public:
     }
 
 
-    inline void clear() override
+     inline void clear() override
     {
         for(volatile uint16_t* p = vram;p < vram+(width*height);++p)
         {
@@ -69,17 +68,17 @@ public:
         }
     }
 
-    inline void present() override
+     inline void present() override
     {
         flipPage();
     }
 
-    inline void plot(int16_t x, int16_t y, uint16_t c) override
+     inline void plot(int16_t x, int16_t y, uint16_t c) override
     {
         vram[(y*width)+x] = c;
     }
 
-    inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
+     inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color) override
     {
         if(x0 > x1) { auto t  = x0; x0 = x1; x1 = t; }
         if(x0 < 0) { x0 = 0; }
@@ -101,7 +100,7 @@ private:
 
     volatile uint16_t * vram = BB;
 
-    inline void flipPage()
+     inline void flipPage()
     {
 
         //while(REG_VCOUNT >= 160); // Wait for vertical blank
