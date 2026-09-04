@@ -59,6 +59,7 @@ public:
         {
             player_.velocity.x = player_.velocity.x - player_.acceleration;
         }
+
     }
 
 

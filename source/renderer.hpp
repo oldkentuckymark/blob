@@ -76,9 +76,17 @@ public:
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision) ].data());
                     if(Cell::isTunnel(cell.collision))
                     {
-                        if(Cell::isTunnelFloor(cell.collision))
+                        if(cell.collision == Cell::Collision::TunnelPlaneLow ||
+                            cell.collision == Cell::Collision::TunnelPlaneMid ||
+                            cell.collision == Cell::Collision::TunnelPlaneHigh)
                         {
                             ctx.drawArray(ffr::DrawType::Quads,0,4);
+                        }
+                        else if(cell.collision == Cell::Collision::TunnelBlockLow ||
+                                cell.collision == Cell::Collision::TunnelBlockMid ||
+                                cell.collision == Cell::Collision::TunnelBlockHigh)
+                        {
+                            ctx.drawArray(ffr::DrawType::Quads,0,16);
                         }
                     }
                     else
@@ -117,13 +125,20 @@ public:
                     ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision) ].data());
                     if(Cell::isTunnel(cell.collision))
                     {
-                        if(Cell::isTunnelFloor(cell.collision))
+                        if(Cell::isTunnel(cell.collision))
                         {
-                            ctx.drawArray(ffr::DrawType::Quads,4,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size() - 4);
-                        }
-                        else
-                        {
-                            ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size());
+                            if(cell.collision == Cell::Collision::TunnelPlaneLow ||
+                                cell.collision == Cell::Collision::TunnelPlaneMid ||
+                                cell.collision == Cell::Collision::TunnelPlaneHigh)
+                            {
+                                ctx.drawArray(ffr::DrawType::Quads,4,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size() - 4);
+                            }
+                            else if(cell.collision == Cell::Collision::TunnelBlockLow ||
+                                     cell.collision == Cell::Collision::TunnelBlockMid ||
+                                     cell.collision == Cell::Collision::TunnelBlockHigh)
+                            {
+                                ctx.drawArray(ffr::DrawType::Quads,16,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size() - 16);
+                            }
                         }
                     }
 

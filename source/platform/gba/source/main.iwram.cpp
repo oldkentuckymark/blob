@@ -53,7 +53,7 @@ class Context final : public ffr::BaseContext<Context,FFT>
 public:
 
     constexpr static uint32_t RENDER_WIDTH = 160;
-    constexpr static uint32_t RENDER_HEIGHT = 120;
+    constexpr static uint32_t RENDER_HEIGHT = 128;
 
     Context()
     {
