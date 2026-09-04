@@ -9,7 +9,7 @@
 
 #include <span>
 #include <meta>
-
+#include <ranges>
 
 template <class Context>
 class Renderer
@@ -17,8 +17,8 @@ class Renderer
 public:
     Renderer()
     {
-        ctx.setViewPort(160,128);
-        ctx.setNearZ(0.6_fx);
+        //ctx.setViewPort(160,128);
+        //ctx.setNearZ(0.6_fx);
         ctx.getVertexFunction().camPos = {0.5_fx,2_fx,-2.0_fx};
 
     }
@@ -50,6 +50,7 @@ public:
 
     auto draw() -> void
     {
+
         ctx.setFaceCulling(ffr::FaceCullMode::Back);
         ctx.clear();
         auto& campos = ctx.getVertexFunction().camPos;
@@ -62,31 +63,65 @@ public:
         {
             if(z < 0) {break;}
             if(z >= current_level_->getLength()) {continue;}
+
+
             for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
             {
-                auto collision {static_cast<size_t>(current_level_->getCell(x,z).collision)};
                 auto const & cell {current_level_->getCell(x,z)};
-
-                if(collision)
+                if( cell.collision != Cell::Collision::Empty )
                 {
-                    if(cell.collision == Cell::Collision::TunnelLow || cell.collision == Cell::Collision::TunnelMid || cell.collision == Cell::Collision::TunnelHigh) {ctx.setFaceCulling(ffr::FaceCullMode::None);}
+                    if(Cell::isTunnel(cell.collision))
+                    {
+                        //ctx.setFaceCulling(ffr::FaceCullMode::None);
+                        continue;
+                    }
                     ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)),0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
                     auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
                     ctx.setColorPointer(0, colptr);
-                    ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ collision ].data());
-                    ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ collision].size());
-                    ctx.setFaceCulling(ffr::FaceCullMode::Back);
+                    ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision) ].data());
+                    ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size());
+
                 }
 
             }
         }
 
+        if(true || current_player_->position.y < 1.0_fx)
+        {
+            ctx.getVertexFunction().modelPos = current_player_->position;
+            ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
+            ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
+            ctx.drawArray(ffr::DrawType::Quads,0,Mesh::SHIP_MESH.size());
+        }
+
+        ctx.setFaceCulling(ffr::FaceCullMode::Back);
+        for(int16_t z = pz + draw_distance_; z >= pz; --z)
+        {
+            if(z < 0) {break;}
+            if(z >= current_level_->getLength()) {continue;}
 
 
-        ctx.getVertexFunction().modelPos = current_player_->position;
-        ctx.setColorPointer(sizeof(Vertex), &Mesh::SHIP_MESH.data()->color);
-        ctx.setVertexPointer(3,sizeof(Vertex),Mesh::SHIP_MESH.data());
-        ctx.drawArray(ffr::DrawType::Triangles,0,Mesh::SHIP_MESH.size());
+            for(int16_t x = 0; x < ILevel::LEVEL_WIDTH; ++x)
+            {
+                auto const & cell {current_level_->getCell(x,z)};
+                if( cell.collision != Cell::Collision::Empty )
+                {
+                    if(Cell::isTunnel(cell.collision))
+                    {
+
+                        ctx.getVertexFunction().modelPos = {ffm::fixed32(static_cast<int16_t>(x-3)),0.0_fx,ffm::fixed32(static_cast<int16_t>(z*2))};
+                        auto const colptr{current_level_->getCellColorBufferPtr(x,z)};
+                        ctx.setColorPointer(0, colptr);
+                        ctx.setVertexPointer(3,sizeof(Vertex), Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision) ].data());
+                        ctx.drawArray(ffr::DrawType::Quads,0,Mesh::CELL_MESHES[ static_cast<size_t>(cell.collision)].size());
+
+                    }
+
+                }
+
+            }
+        }
+
 
 
 

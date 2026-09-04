@@ -69,11 +69,12 @@ public:
     Context()
     {
         SDL_Init(SDL_INIT_VIDEO);
-        SDL_CreateWindowAndRenderer("blob",240*4,160*4,0,&win,&ren);
-        SDL_SetRenderScale(ren,4.0f,4.0f);
-        tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 160,128);
+        SDL_CreateWindowAndRenderer("blob",SCREEN_WIDTH*scale,SCREEN_HEIGHT*scale,0,&win,&ren);
+        tex = SDL_CreateTexture(ren,SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, RENDER_WIDTH,RENDER_HEIGHT);
         SDL_SetTextureScaleMode(tex, SDL_SCALEMODE_NEAREST);
         SDL_SetRenderTarget(ren,tex);
+        setViewPort(RENDER_WIDTH, RENDER_HEIGHT);
+        setNearZ(1.0_fx);
     }
 
     ~Context()
@@ -113,6 +114,13 @@ public:
     }
 
 private:
+    int scale = 4;
+    int SCREEN_WIDTH = 240;
+    int SCREEN_HEIGHT = 160;
+
+    int RENDER_WIDTH = 160;
+    int RENDER_HEIGHT = 128;
+
     SDL_Window* win{nullptr};
     SDL_Renderer* ren{nullptr};
 

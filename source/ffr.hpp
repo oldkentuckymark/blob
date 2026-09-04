@@ -120,7 +120,6 @@ public:
                       "CRITICAL: The provided VERTEX_FUNCTION template parameter must override operator()(vec3&).");
         static_assert(HasPlot<Derived>,
                       "CRITICAL: Your derived platform renderer class must implement void plot(int16_t x, int16_t y, uint16_t color).");
-
     }
     ~BaseContext() = default;
 
@@ -341,7 +340,7 @@ public:
         viewport_width_fx_ = static_cast<fixed32>(w);
         viewport_height_fx_ = static_cast<fixed32>(h);
         //aspect_ratio_ = 1.0_fx / (viewport_width_fx_ / viewport_height_fx_);
-        aspect_ratio_ = 1.0_fx | 1.5_fx;
+        aspect_ratio_ = 1.0_fx | (viewport_width_fx_ | viewport_height_fx_);
     }
 
      [[nodiscard]] auto getVertexFunction() -> VERTEX_FUNCTION&
@@ -448,10 +447,10 @@ public:
                     auto outVerts = clip_polygon_near_z<3>(std::span<vec3,3>(&working_vertex_buffer_[i],3));
                     for(auto k = 0ul; k < outVerts.size(); k = k + 3)
                     {
-                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(true ||is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);
-                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);
                         triangle(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,ccs);
@@ -479,10 +478,10 @@ public:
                     auto outVerts = clip_polygon_near_z<4>(std::span<vec3,4>(&working_vertex_buffer_[i],4));
                     for(auto k = 0ul; k < outVerts.size(); k = k + 4)
                     {
-                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(true ||is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                         project_to_ndc(outVerts[k+0]);project_to_ndc(outVerts[k+1]);project_to_ndc(outVerts[k+2]);project_to_ndc(outVerts[k+3]);
-                        //if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
+                        if(is_cull_passing(outVerts[k+0],outVerts[k+1],outVerts[k+2]))
                         {
                             to_screen_space(outVerts[k+0]);to_screen_space(outVerts[k+1]);to_screen_space(outVerts[k+2]);to_screen_space(outVerts[k+3]);
                             quad(outVerts[k+0].x,outVerts[k+0].y,outVerts[k+1].x,outVerts[k+1].y,outVerts[k+2].x,outVerts[k+2].y,outVerts[k+3].x,outVerts[k+3].y,ccs);
@@ -653,7 +652,7 @@ protected:
             const auto ac_y = v2.y - v1.y;
             const auto nz = ab_x * ac_y - ab_y * ac_x;
 
-            if (cull_ == FaceCullMode::Back) [[likely]] { return nz >= 0.0_fx; }
+            if (cull_ == FaceCullMode::Back) [[likely]] { return nz > 0.0_fx; }
             else if (cull_ == FaceCullMode::Front) { return nz < 0.0_fx; }
         }
         return false;
@@ -683,7 +682,7 @@ protected:
     int16_t viewport_height_{0};
     fixed32 viewport_width_fx_{0.0_fx};
     fixed32 viewport_height_fx_{0.0_fx};
-    fixed32 aspect_ratio_{0.0_fx};
+    fixed32 aspect_ratio_{0_fx};
     fixed32 near_z_{0.0_fx};
 
     std::inplace_vector<vec3,MAX_VERTS> working_vertex_buffer_;

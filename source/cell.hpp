@@ -42,7 +42,10 @@ public:
     };
 
 
-
+    static auto isTunnel(Collision c) -> bool
+    {
+        return (static_cast<std::size_t>(c) >= 7) && (static_cast<std::size_t>(c) <= 15);
+    }
 
     constexpr Cell() = default;
 

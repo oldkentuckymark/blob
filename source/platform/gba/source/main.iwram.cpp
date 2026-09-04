@@ -52,6 +52,9 @@ class Context final : public ffr::BaseContext<Context,FFT>
 {
 public:
 
+    constexpr static uint32_t RENDER_WIDTH = 160;
+    constexpr static uint32_t RENDER_HEIGHT = 120;
+
     Context()
     {
         // Enable Vblank Interrupt to allow VblankIntrWait
@@ -65,14 +68,17 @@ public:
 
         // 3. Calculate 8.8 matrix coefficients.
         // We multiply the ratio by 256 to convert a standard decimal to 8.8 fixed-point.
-        constexpr int16_t scale_x = static_cast<int16_t>((160 * 256) / 240); // 160/240 * 256 = 170 (0x00AA)
-        constexpr int16_t scale_y = static_cast<int16_t>((128 * 256) / 160); // 128/160 * 256 = 204 (0x00CC)
+        constexpr int16_t scale_x = static_cast<int16_t>((RENDER_WIDTH * 256) / SCREEN_WIDTH); // 160/240 * 256 = 170 (0x00AA)
+        constexpr int16_t scale_y = static_cast<int16_t>((RENDER_HEIGHT * 256) / SCREEN_HEIGHT); // 128/160 * 256 = 204 (0x00CC)
 
         // 4. Load values into the GBA transform engine registers.
         REG_BG2PA = scale_x; // Horizontal scaling step
         REG_BG2PB = 0;       // Horizontal shearing (none)
         REG_BG2PC = 0;       // Vertical shearing (none)
         REG_BG2PD = scale_y; // Vertical scaling step
+
+        setViewPort(160,128);
+        setNearZ(1.0_fx);
     }
 
 
@@ -96,10 +102,6 @@ public:
 
      inline void lineHorizontal(int16_t x0, int16_t y0, int16_t x1, uint16_t color)
     {
-        if(x0 > x1) { auto t  = x0; x0 = x1; x1 = t; }
-        if(x0 < 0) { x0 = 0; }
-        if(x1 >= viewport_width_) { x1 = viewport_width_ - 1; }
-
         for(uint16_t* p = (uint16_t*)&vram[y0*width+x0]; p <= &vram[y0*width+x1]; ++p)
         {
             *p = color;
