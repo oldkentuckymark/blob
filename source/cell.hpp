@@ -42,9 +42,14 @@ public:
     };
 
 
-    static auto isTunnel(Collision c) -> bool
+    constexpr static auto isTunnel(Collision c) -> bool
     {
         return (static_cast<std::size_t>(c) >= 7) && (static_cast<std::size_t>(c) <= 15);
+    }
+
+    constexpr static auto isTunnelFloor(Collision c) -> bool
+    {
+        return (static_cast<std::size_t>(c) >= 10) && (static_cast<std::size_t>(c) <= 15);
     }
 
     constexpr Cell() = default;
